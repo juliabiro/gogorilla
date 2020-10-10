@@ -85,12 +85,38 @@ func (g *Gorilla) Draw(screen *ebiten.Image) {
 	screen.DrawImage(g.img, op)
 }
 
+type Windows struct {
+	color             color.Color
+	width             int
+	height            int
+	spacingHorizontal int
+	spacingVertical   int
+	img               *ebiten.Image
+}
+
+func (w *Windows) Draw(screen *ebiten.Image, b *Building) {
+	op := &ebiten.DrawImageOptions{}
+
+	w.img.Fill(w.color)
+	scaleX := float64(w.width) / float64(w.spacingHorizontal)
+	scaleY := float64(w.height) / float64(w.spacingVertical)
+	for i := 0; (i+1)*(w.spacingHorizontal)-w.width < b.width; i++ {
+		for j := 0; (j+1)*(w.spacingVertical)-w.height < b.height; j++ {
+			op.GeoM.Reset()
+			op.GeoM.Scale(scaleX, scaleY)
+			op.GeoM.Translate(float64(b.X+(i+1)*w.spacingHorizontal-w.width), float64(b.Y+(j+1)*w.spacingVertical-w.height))
+			screen.DrawImage(w.img, op)
+		}
+	}
+}
+
 type Building struct {
 	Point
-	img    *ebiten.Image
-	height int
-	width  int
-	color  color.Color
+	img     *ebiten.Image
+	height  int
+	width   int
+	color   color.Color
+	windows Windows
 }
 
 func (b *Building) Draw(screen *ebiten.Image) {
@@ -98,8 +124,8 @@ func (b *Building) Draw(screen *ebiten.Image) {
 
 	op.GeoM.Translate(float64(b.X), float64(b.Y))
 	b.img.Fill(b.color)
-
 	screen.DrawImage(b.img, op)
+	b.windows.Draw(screen, b)
 }
 
 func setupBuildings(g *Game) {
@@ -111,7 +137,15 @@ func setupBuildings(g *Game) {
 			w = screenWidth - k
 		}
 		img, _ := ebiten.NewImage(w, h, ebiten.FilterDefault)
-		g.buildings = append(g.buildings, Building{Point{k, screenHeight - h}, img, h, w, color.RGBA{0, 0, 100 + uint8(rand.Intn(155)), 255}})
+		c := color.RGBA{0, 0, 100 + uint8(rand.Intn(155)), 255}
+		wc := color.RGBA{0, 100, 100 + uint8(rand.Intn(155)), 255}
+		ww := 5 + rand.Intn(10)
+		wh := 15 + rand.Intn(20)
+		sv := ww + 3 + rand.Intn(5)
+		sh := wh + 3 + rand.Intn(5)
+		wimg, _ := ebiten.NewImage(ww, wh, ebiten.FilterDefault)
+		windows := Windows{wc, ww, wh, sv, sh, wimg}
+		g.buildings = append(g.buildings, Building{Point{k, screenHeight - h}, img, h, w, c, windows})
 		k = k + w
 	}
 }
