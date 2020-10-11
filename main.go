@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"image/color"
@@ -92,18 +93,24 @@ type Windows struct {
 	borderHorizontal int
 	borderVertical   int
 	img              *ebiten.Image
+	lightsOffColor   color.Color
+	lightsOff        map[string]int
 }
 
 func (w *Windows) Draw(screen *ebiten.Image, b *Building) {
 	op := &ebiten.DrawImageOptions{}
 
-	w.img.Fill(w.color)
 	scaleX := float64(w.width-2*w.borderHorizontal) / float64(w.width)
 	scaleY := float64(w.height-2*w.borderVertical) / float64(w.height)
 	for i := 1; i*w.width-w.borderHorizontal < b.width; i++ {
 		for j := 1; j*w.height-w.borderVertical < b.height; j++ {
 			op.GeoM.Reset()
 			op.GeoM.Scale(scaleX, scaleY)
+			if w.lightsOff[fmt.Sprintf("%s,%s", i, j)] == 1 {
+				w.img.Fill(w.lightsOffColor)
+			} else {
+				w.img.Fill(w.color)
+			}
 			op.GeoM.Translate(float64(b.X+(i-1)*w.width+w.borderHorizontal), float64(b.Y+(j-1)*w.height+w.borderVertical))
 			screen.DrawImage(w.img, op)
 		}
@@ -139,12 +146,22 @@ func setupBuildings(g *Game) {
 		img, _ := ebiten.NewImage(w, h, ebiten.FilterDefault)
 		c := color.RGBA{0, 0, 100 + uint8(rand.Intn(155)), 255}
 		wc := color.RGBA{100 + uint8(rand.Intn(155)), 100 + uint8(rand.Intn(155)), 0, 255}
+		locrand := uint8(rand.Intn(55))
+		loc := color.RGBA{100 + locrand, 100 + locrand, 100 + locrand, 255}
 		ww := w / (5 + rand.Intn(8))
 		bh := ww * (rand.Intn(15) + 8) / 50
 		wh := h / (5 + rand.Intn(15))
 		bv := wh * (rand.Intn(15) + 8) / 50
 		wimg, _ := ebiten.NewImage(ww, wh, ebiten.FilterDefault)
-		windows := Windows{wc, ww, wh, bh, bv, wimg}
+		loff := make(map[string]int)
+		for i := 0; i*ww < w; i++ {
+			for j := 0; j*wh < h; j++ {
+				if rand.Intn(10) < 2 {
+					loff[fmt.Sprintf("%s,%s", i, j)] = 1
+				}
+			}
+		}
+		windows := Windows{wc, ww, wh, bh, bv, wimg, loc, loff}
 		g.buildings = append(g.buildings, Building{Point{k, screenHeight - h}, img, h, w, c, windows})
 		k = k + w
 	}
