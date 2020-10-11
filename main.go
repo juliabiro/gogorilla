@@ -129,6 +129,7 @@ func (g *Game) Update(screen *ebiten.Image) error {
 		} else {
 			g.banana.move(left)
 		}
+		// TODO: collision detection
 		if g.bananaOut() {
 			g.changeTurn()
 			g.resetBanana()
@@ -297,8 +298,10 @@ func (b *Banana) move(direction int) {
 		b.X -= b.speed * math.Cos(b.angle*math.Pi/180)
 	}
 
-	b.Y -= b.speed * math.Sin(b.angle)
+	b.Y -= b.speed * math.Sin(b.angle*math.Pi/180)
 	b.orientation += 0.1
+
+	// TODO: apply gravity
 }
 
 func setupBuildings(g *Game) {
