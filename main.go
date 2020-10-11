@@ -79,6 +79,11 @@ func (g *Game) changeTurn() {
 
 // Update proceeds the game state.
 // Update is called every tick (1/60 [s] by default).
+func handleBackspace(s *string) {
+	if len(*s) >= 1 {
+		*s = (*s)[:len(*s)-1]
+	}
+}
 func (g *Game) Update(screen *ebiten.Image) error {
 	// Write your game's logical update.
 	if repeatingKeyPressed(ebiten.KeyEnter) || repeatingKeyPressed(ebiten.KeyKPEnter) {
@@ -100,8 +105,14 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	switch g.gameState {
 	case inputAngle:
 		g.inputAngle += string(ebiten.InputChars())
+		if repeatingKeyPressed(ebiten.KeyBackspace) {
+			handleBackspace(&g.inputAngle)
+		}
 	case inputSpeed:
 		g.inputSpeed += string(ebiten.InputChars())
+		if repeatingKeyPressed(ebiten.KeyBackspace) {
+			handleBackspace(&g.inputSpeed)
+		}
 	case bananaFlying:
 		if g.turn == g.gorilla1 {
 			g.banana.move(right)
