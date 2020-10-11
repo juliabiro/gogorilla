@@ -27,12 +27,14 @@ type Game struct {
 	gorilla1  Gorilla
 	gorilla2  Gorilla
 	buildings []Building
+	banana    Banana
 }
 
 // Update proceeds the game state.
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update(screen *ebiten.Image) error {
 	// Write your game's logical update.
+	g.banana.move()
 	return nil
 }
 
@@ -45,6 +47,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	g.gorilla1.Draw(screen)
 	g.gorilla2.Draw(screen)
+	g.banana.Draw(screen)
 	// Write your game's rendering.
 }
 
@@ -71,19 +74,25 @@ type Point struct {
 	X int
 	Y int
 }
+
+type scaledImage struct {
+	*ebiten.Image
+	scaleX, scaleY float64
+}
+
 type Gorilla struct {
 	Point
 	alive  bool
-	img    *ebiten.Image
+	img    scaledImage
 	height int
 	width  int
 }
 
 func (g *Gorilla) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Scale(0.1, 0.1)
+	op.GeoM.Scale(g.img.scaleX, g.img.scaleY)
 	op.GeoM.Translate(float64(g.X), float64(g.Y))
-	screen.DrawImage(g.img, op)
+	screen.DrawImage(g.img.Image, op)
 }
 
 type Windows struct {
@@ -135,6 +144,33 @@ func (b *Building) Draw(screen *ebiten.Image) {
 	b.windows.Draw(screen, b)
 }
 
+type Banana struct {
+	Point
+	img         scaledImage
+	orientation float64
+	isFlying    bool
+	width       int
+	height      int
+}
+
+func (b *Banana) Draw(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(b.img.scaleX, b.img.scaleY)
+	op.GeoM.Rotate(float64(b.orientation))
+	// the order is important here: the image needs to be scaled before it is moved
+	op.GeoM.Translate(float64(b.X), float64(b.Y))
+	screen.DrawImage(b.img.Image, op)
+
+}
+
+func (b *Banana) move() {
+	if b.isFlying {
+		b.X++
+		b.Y++
+		b.orientation += 0.1
+	}
+}
+
 func setupBuildings(g *Game) {
 	k := 0
 	for k < screenWidth {
@@ -145,6 +181,7 @@ func setupBuildings(g *Game) {
 		}
 		img, _ := ebiten.NewImage(w, h, ebiten.FilterDefault)
 		c := color.RGBA{0, 0, 100 + uint8(rand.Intn(155)), 255}
+
 		wc := color.RGBA{100 + uint8(rand.Intn(155)), 100 + uint8(rand.Intn(155)), 0, 255}
 		locrand := uint8(rand.Intn(55))
 		loc := color.RGBA{100 + locrand, 100 + locrand, 100 + locrand, 255}
@@ -170,13 +207,14 @@ func setupBuildings(g *Game) {
 func (g *Gorilla) init(minx int, b []Building) {
 
 	g.alive = true
+	g.width = 50
+	g.height = 50
 	var err error
-	g.img, _, err = ebitenutil.NewImageFromFile("/Users/juliabiro/go/gorilla/gorilla.png", ebiten.FilterDefault)
+	img, _, err := ebitenutil.NewImageFromFile("/Users/juliabiro/go/gorilla/gorilla.png", ebiten.FilterDefault)
+	g.img = scaledImage{img, float64(g.width) / float64(img.Bounds().Dx()), float64(g.height) / float64(img.Bounds().Dy())}
 	if err != nil {
 		log.Fatal(err)
 	}
-	g.width = 50
-	g.height = 50
 	g.X = minx + rand.Intn(0.6*screenWidth/2)
 
 	// find my rooftop
@@ -191,13 +229,33 @@ func (g *Gorilla) init(minx int, b []Building) {
 	if g.X < bb.X || g.X+g.width > bb.X+bb.width {
 		g.X = bb.X + rand.Intn(bb.width-g.width)
 	}
+
 }
 func setupGorillas(g *Game) {
 	g.gorilla1.init(0, g.buildings)
 	g.gorilla2.init(screenWidth/2, g.buildings)
 }
 
+func setupBanana(g *Game) {
+	g.banana.width = 20
+	g.banana.height = 20
+	var err error
+	img, _, err := ebitenutil.NewImageFromFile("/Users/juliabiro/go/gorilla/banana.png", ebiten.FilterDefault)
+	g.banana.img = scaledImage{img, float64(g.banana.width) / float64(img.Bounds().Dx()), float64(g.banana.height) / float64(img.Bounds().Dy())}
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	g.banana.X = g.gorilla1.X + g.gorilla1.width
+	g.banana.Y = g.gorilla1.Y
+}
+
 func setup(g *Game) {
 	setupBuildings(g)
 	setupGorillas(g)
+	setupBanana(g)
+	// log.Printf("%v", g.gorilla1)
+	// log.Printf("%v", g.gorilla2)
+
 }
