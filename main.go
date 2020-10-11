@@ -77,12 +77,6 @@ func (g *Game) changeTurn() {
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update(screen *ebiten.Image) error {
 	// Write your game's logical update.
-	if g.gameState == inputAngle {
-		g.inputAngle += string(ebiten.InputChars())
-	}
-	if g.gameState == inputSpeed {
-		g.inputSpeed += string(ebiten.InputChars())
-	}
 	if repeatingKeyPressed(ebiten.KeyEnter) || repeatingKeyPressed(ebiten.KeyKPEnter) {
 		switch g.gameState {
 		case start:
@@ -92,21 +86,26 @@ func (g *Game) Update(screen *ebiten.Image) error {
 		case inputSpeed:
 			g.banana.angle, _ = strconv.ParseFloat(g.inputAngle, 64)
 			g.banana.speed, _ = strconv.ParseFloat(g.inputAngle, 64)
-			g.gameState = bananaFlying
 			g.inputAngle = ""
 			g.inputSpeed = ""
-		case bananaFlying:
-			if g.bananaOut() {
-				g.changeTurn()
-				g.gameState = inputSpeed
-			}
+			g.gameState = bananaFlying
 		default:
 		}
 	}
-	if g.gameState == bananaFlying {
-		g.banana.move()
-	}
 
+	switch g.gameState {
+	case inputAngle:
+		g.inputAngle += string(ebiten.InputChars())
+	case inputSpeed:
+		g.inputSpeed += string(ebiten.InputChars())
+	case bananaFlying:
+		g.banana.move()
+		if g.bananaOut() {
+			g.changeTurn()
+			g.resetBanana()
+			g.gameState = inputAngle
+		}
+	}
 	g.counter++
 	return nil
 }
@@ -333,6 +332,10 @@ func setupGorillas(g *Game) {
 	g.gorilla2.init(screenWidth/2, g.buildings)
 }
 
+func (g *Game) resetBanana() {
+	g.banana.X = g.turn.X + g.turn.width
+	g.banana.Y = g.turn.Y
+}
 func setupBanana(g *Game) {
 	g.banana.width = 20
 	g.banana.height = 20
@@ -343,17 +346,15 @@ func setupBanana(g *Game) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	g.banana.X = g.gorilla1.X + g.gorilla1.width
-	g.banana.Y = g.gorilla1.Y
+	g.resetBanana()
 }
 
 func setup(g *Game) {
+	g.gameState = start
 	setupBuildings(g)
 	setupGorillas(g)
+	g.turn = g.gorilla1
 	setupBanana(g)
 	// log.Printf("%v", g.gorilla1)
 	// log.Printf("%v", g.gorilla2)
-	g.turn = g.gorilla1
-	g.gameState = start
 }
