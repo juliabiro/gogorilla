@@ -87,17 +87,27 @@ func handleBackspace(s *string) {
 func (g *Game) Update(screen *ebiten.Image) error {
 	// Write your game's logical update.
 	if repeatingKeyPressed(ebiten.KeyEnter) || repeatingKeyPressed(ebiten.KeyKPEnter) {
+		var err error
 		switch g.gameState {
 		case start:
 			g.gameState = inputAngle
 		case inputAngle:
+			g.banana.angle, err = strconv.ParseFloat(g.inputAngle, 64)
+			if err != nil {
+				g.inputAngle = ""
+				return nil
+			}
 			g.gameState = inputSpeed
 		case inputSpeed:
-			g.banana.angle, _ = strconv.ParseFloat(g.inputAngle, 64)
-			g.banana.speed, _ = strconv.ParseFloat(g.inputSpeed, 64)
+			g.banana.speed, err = strconv.ParseFloat(g.inputSpeed, 64)
+			if err != nil {
+				g.inputSpeed = ""
+				return nil
+			}
 			g.inputAngle = ""
 			g.inputSpeed = ""
 			g.gameState = bananaFlying
+
 		default:
 		}
 	}
