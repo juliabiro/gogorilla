@@ -24,6 +24,10 @@ const (
 	frameHeight = 32
 	frameNum    = 8
 )
+const (
+	right = iota
+	left
+)
 
 const (
 	start = iota
@@ -85,7 +89,7 @@ func (g *Game) Update(screen *ebiten.Image) error {
 			g.gameState = inputSpeed
 		case inputSpeed:
 			g.banana.angle, _ = strconv.ParseFloat(g.inputAngle, 64)
-			g.banana.speed, _ = strconv.ParseFloat(g.inputAngle, 64)
+			g.banana.speed, _ = strconv.ParseFloat(g.inputSpeed, 64)
 			g.inputAngle = ""
 			g.inputSpeed = ""
 			g.gameState = bananaFlying
@@ -99,7 +103,11 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	case inputSpeed:
 		g.inputSpeed += string(ebiten.InputChars())
 	case bananaFlying:
-		g.banana.move()
+		if g.turn == g.gorilla1 {
+			g.banana.move(right)
+		} else {
+			g.banana.move(left)
+		}
 		if g.bananaOut() {
 			g.changeTurn()
 			g.resetBanana()
@@ -261,9 +269,14 @@ func (b *Banana) Draw(screen *ebiten.Image) {
 
 }
 
-func (b *Banana) move() {
-	b.X += b.speed * math.Cos(b.angle)
-	b.Y += b.speed * math.Sin(b.angle)
+func (b *Banana) move(direction int) {
+	if direction == right {
+		b.X += b.speed * math.Cos(b.angle*math.Pi/180)
+	} else {
+		b.X -= b.speed * math.Cos(b.angle*math.Pi/180)
+	}
+
+	b.Y -= b.speed * math.Sin(b.angle)
 	b.orientation += 0.1
 }
 
