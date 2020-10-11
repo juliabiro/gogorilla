@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/inpututil"
 	"image/color"
 	_ "image/png"
 	"log"
+	"math"
 	"math/rand"
+	"strconv"
 	"time"
 )
 
@@ -22,20 +25,75 @@ const (
 	frameNum    = 8
 )
 
+const (
+	inputAngle = iota
+	inputSpeed
+	bananaFlying
+	gorillaDead
+)
+
 // Game implements ebiten.Game interface.
 type Game struct {
-	gorilla1  Gorilla
-	gorilla2  Gorilla
-	buildings []Building
-	banana    Banana
+	gorilla1   Gorilla
+	gorilla2   Gorilla
+	buildings  []Building
+	banana     Banana
+	turn       Gorilla
+	gameState  int
+	inputAngle string
+	inputSpeed string
+}
+
+func repeatingKeyPressed(key ebiten.Key) bool {
+	const (
+		delay    = 30
+		interval = 3
+	)
+	d := inpututil.KeyPressDuration(key)
+	if d == 1 {
+		return true
+	}
+	if d >= delay && (d-delay)%interval == 0 {
+		return true
+	}
+	return false
 }
 
 // Update proceeds the game state.
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update(screen *ebiten.Image) error {
 	// Write your game's logical update.
-	g.banana.move()
+	if g.gameState == inputAngle {
+		g.inputAngle += string(ebiten.InputChars())
+	}
+	if g.gameState == inputSpeed {
+		g.inputSpeed += string(ebiten.InputChars())
+	}
+	if repeatingKeyPressed(ebiten.KeyEnter) || repeatingKeyPressed(ebiten.KeyKPEnter) {
+		switch g.gameState {
+		case inputAngle:
+			g.gameState = inputSpeed
+		case inputSpeed:
+			g.banana.angle, _ = strconv.ParseFloat(g.inputAngle, 64)
+			g.banana.speed, _ = strconv.ParseFloat(g.inputAngle, 64)
+			g.gameState = bananaFlying
+			g.inputAngle = ""
+			g.inputSpeed = ""
+		default:
+		}
+	}
+	if g.gameState == bananaFlying {
+		g.banana.move()
+	}
+
 	return nil
+}
+
+func (g *Game) WriteInputDialog(screen *ebiten.Image) {
+	if g.gameState != gorillaDead {
+		t := "angle: " + g.inputAngle + "\n speed: " + g.inputSpeed
+		ebitenutil.DebugPrint(screen, t)
+	}
 }
 
 // Draw draws the game screen.
@@ -71,8 +129,8 @@ func main() {
 }
 
 type Point struct {
-	X int
-	Y int
+	X float64
+	Y float64
 }
 
 type scaledImage struct {
@@ -84,8 +142,8 @@ type Gorilla struct {
 	Point
 	alive  bool
 	img    scaledImage
-	height int
-	width  int
+	height float64
+	width  float64
 }
 
 func (g *Gorilla) Draw(screen *ebiten.Image) {
@@ -97,10 +155,10 @@ func (g *Gorilla) Draw(screen *ebiten.Image) {
 
 type Windows struct {
 	color            color.Color
-	width            int
-	height           int
-	borderHorizontal int
-	borderVertical   int
+	width            float64
+	height           float64
+	borderHorizontal float64
+	borderVertical   float64
 	img              *ebiten.Image
 	lightsOffColor   color.Color
 	lightsOff        map[string]int
@@ -111,8 +169,8 @@ func (w *Windows) Draw(screen *ebiten.Image, b *Building) {
 
 	scaleX := float64(w.width-2*w.borderHorizontal) / float64(w.width)
 	scaleY := float64(w.height-2*w.borderVertical) / float64(w.height)
-	for i := 1; i*w.width-w.borderHorizontal < b.width; i++ {
-		for j := 1; j*w.height-w.borderVertical < b.height; j++ {
+	for i := 1.0; i*w.width-w.borderHorizontal < b.width; i++ {
+		for j := 1.0; j*w.height-w.borderVertical < b.height; j++ {
 			op.GeoM.Reset()
 			op.GeoM.Scale(scaleX, scaleY)
 			if w.lightsOff[fmt.Sprintf("%s,%s", i, j)] == 1 {
@@ -120,7 +178,7 @@ func (w *Windows) Draw(screen *ebiten.Image, b *Building) {
 			} else {
 				w.img.Fill(w.color)
 			}
-			op.GeoM.Translate(float64(b.X+(i-1)*w.width+w.borderHorizontal), float64(b.Y+(j-1)*w.height+w.borderVertical))
+			op.GeoM.Translate(b.X+float64((i-1)*w.width+w.borderHorizontal), b.Y+float64((j-1)*w.height+w.borderVertical))
 			screen.DrawImage(w.img, op)
 		}
 	}
@@ -129,8 +187,8 @@ func (w *Windows) Draw(screen *ebiten.Image, b *Building) {
 type Building struct {
 	Point
 	img     *ebiten.Image
-	height  int
-	width   int
+	height  float64
+	width   float64
 	color   color.Color
 	windows Windows
 }
@@ -148,9 +206,10 @@ type Banana struct {
 	Point
 	img         scaledImage
 	orientation float64
-	isFlying    bool
-	width       int
-	height      int
+	width       float64
+	height      float64
+	angle       float64
+	speed       float64
 }
 
 func (b *Banana) Draw(screen *ebiten.Image) {
@@ -164,42 +223,40 @@ func (b *Banana) Draw(screen *ebiten.Image) {
 }
 
 func (b *Banana) move() {
-	if b.isFlying {
-		b.X++
-		b.Y++
-		b.orientation += 0.1
-	}
+	b.X += b.speed * math.Cos(b.angle)
+	b.Y += b.speed * math.Sin(b.angle)
+	b.orientation += 0.1
 }
 
 func setupBuildings(g *Game) {
-	k := 0
+	k := 0.0
 	for k < screenWidth {
-		w := 100 + rand.Intn(screenWidth/12)
-		h := 150 + rand.Intn(screenHeight/2)
+		w := float64(100 + rand.Intn(screenWidth/12))
+		h := float64(150 + rand.Intn(screenHeight/2))
 		if k+w >= screenWidth {
 			w = screenWidth - k
 		}
-		img, _ := ebiten.NewImage(w, h, ebiten.FilterDefault)
+		img, _ := ebiten.NewImage(int(w), int(h), ebiten.FilterDefault)
 		c := color.RGBA{0, 0, 100 + uint8(rand.Intn(155)), 255}
 
 		wc := color.RGBA{100 + uint8(rand.Intn(155)), 100 + uint8(rand.Intn(155)), 0, 255}
 		locrand := uint8(rand.Intn(55))
 		loc := color.RGBA{100 + locrand, 100 + locrand, 100 + locrand, 255}
-		ww := w / (5 + rand.Intn(8))
-		bh := ww * (rand.Intn(15) + 8) / 50
-		wh := h / (5 + rand.Intn(15))
-		bv := wh * (rand.Intn(15) + 8) / 50
-		wimg, _ := ebiten.NewImage(ww, wh, ebiten.FilterDefault)
+		ww := w / float64((5 + rand.Intn(8)))
+		bh := ww * float64(rand.Intn(15)+8) / 50
+		wh := h / float64((5 + rand.Intn(15)))
+		bv := wh * float64(rand.Intn(15)+8) / 50
+		wimg, _ := ebiten.NewImage(int(ww), int(wh), ebiten.FilterDefault)
 		loff := make(map[string]int)
-		for i := 0; i*ww < w; i++ {
-			for j := 0; j*wh < h; j++ {
+		for i := 0.0; i*ww < w; i++ {
+			for j := 0.0; j*wh < h; j++ {
 				if rand.Intn(10) < 2 {
 					loff[fmt.Sprintf("%s,%s", i, j)] = 1
 				}
 			}
 		}
 		windows := Windows{wc, ww, wh, bh, bv, wimg, loc, loff}
-		g.buildings = append(g.buildings, Building{Point{k, screenHeight - h}, img, h, w, c, windows})
+		g.buildings = append(g.buildings, Building{Point{float64(k), float64(screenHeight - h)}, img, h, w, c, windows})
 		k = k + w
 	}
 }
@@ -215,19 +272,19 @@ func (g *Gorilla) init(minx int, b []Building) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	g.X = minx + rand.Intn(0.6*screenWidth/2)
+	g.X = float64(minx + rand.Intn(0.6*screenWidth/2))
 
 	// find my rooftop
 	i := 0
-	for g.X > b[i].X+b[i].width {
+	for g.X > b[i].X+float64(b[i].width) {
 		i++
 	}
 	bb := b[i]
 
 	// make sure I sit on it
-	g.Y = bb.Y - g.height
+	g.Y = bb.Y - float64(g.height)
 	if g.X < bb.X || g.X+g.width > bb.X+bb.width {
-		g.X = bb.X + rand.Intn(bb.width-g.width)
+		g.X = bb.X + float64(rand.Intn(int(bb.width-g.width)))
 	}
 
 }
@@ -257,5 +314,6 @@ func setup(g *Game) {
 	setupBanana(g)
 	// log.Printf("%v", g.gorilla1)
 	// log.Printf("%v", g.gorilla2)
-
+	g.turn = g.gorilla1
+	g.gameState = inputSpeed
 }
