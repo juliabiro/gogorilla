@@ -26,7 +26,8 @@ const (
 )
 
 const (
-	inputAngle = iota
+	start = iota
+	inputAngle
 	inputSpeed
 	bananaFlying
 	gorillaDead
@@ -42,6 +43,7 @@ type Game struct {
 	gameState  int
 	inputAngle string
 	inputSpeed string
+	counter    int
 }
 
 func repeatingKeyPressed(key ebiten.Key) bool {
@@ -59,6 +61,18 @@ func repeatingKeyPressed(key ebiten.Key) bool {
 	return false
 }
 
+func (g *Game) bananaOut() bool {
+	return g.banana.X < 0 || g.banana.X > screenWidth || g.banana.Y < 0 || g.banana.Y > screenHeight
+}
+
+func (g *Game) changeTurn() {
+	if g.turn == g.gorilla1 {
+		g.turn = g.gorilla2
+	} else {
+		g.turn = g.gorilla1
+	}
+}
+
 // Update proceeds the game state.
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update(screen *ebiten.Image) error {
@@ -71,6 +85,8 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	}
 	if repeatingKeyPressed(ebiten.KeyEnter) || repeatingKeyPressed(ebiten.KeyKPEnter) {
 		switch g.gameState {
+		case start:
+			g.gameState = inputAngle
 		case inputAngle:
 			g.gameState = inputSpeed
 		case inputSpeed:
@@ -79,6 +95,11 @@ func (g *Game) Update(screen *ebiten.Image) error {
 			g.gameState = bananaFlying
 			g.inputAngle = ""
 			g.inputSpeed = ""
+		case bananaFlying:
+			if g.bananaOut() {
+				g.changeTurn()
+				g.gameState = inputSpeed
+			}
 		default:
 		}
 	}
@@ -86,14 +107,32 @@ func (g *Game) Update(screen *ebiten.Image) error {
 		g.banana.move()
 	}
 
+	g.counter++
 	return nil
 }
 
 func (g *Game) WriteInputDialog(screen *ebiten.Image) {
-	if g.gameState != gorillaDead {
-		t := "angle: " + g.inputAngle + "\n speed: " + g.inputSpeed
+	t := ""
+	switch g.gameState {
+	case start:
+		ebitenutil.DebugPrint(screen, "game start: press Enter to continue")
+	case gorillaDead:
+		t = fmt.Sprintf("%s won! press Enter to continue.", g.turn)
 		ebitenutil.DebugPrint(screen, t)
+	case inputAngle:
+		t = "angle: " + g.inputAngle
+		if g.counter%60 < 30 {
+			t += "_"
+		}
+	case inputSpeed:
+		t = "angle: " + g.inputAngle + "\nspeed: " + g.inputSpeed
+		if g.counter%60 < 30 {
+			t += "_"
+		}
+	default:
 	}
+	ebitenutil.DebugPrint(screen, t)
+
 }
 
 // Draw draws the game screen.
@@ -107,6 +146,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.gorilla2.Draw(screen)
 	g.banana.Draw(screen)
 	// Write your game's rendering.
+	g.WriteInputDialog(screen)
 }
 
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
@@ -315,5 +355,5 @@ func setup(g *Game) {
 	// log.Printf("%v", g.gorilla1)
 	// log.Printf("%v", g.gorilla2)
 	g.turn = g.gorilla1
-	g.gameState = inputSpeed
+	g.gameState = start
 }
