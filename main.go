@@ -2,9 +2,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/inpututil"
+
+	"github.com/hajimehoshi/ebiten/text"
+	"golang.org/x/image/font"
 	"image/color"
 	_ "image/png"
 	"log"
@@ -39,6 +44,15 @@ const (
 
 const (
 	gravity = 0.98
+)
+
+const (
+	gorilla1InputLoc = 10
+	gorilla2InputLoc = screenWidth - 120
+)
+
+var (
+	mplusNormalFont font.Face
 )
 
 // Game implements ebiten.Game interface.
@@ -122,7 +136,8 @@ func (g *Game) WriteInputDialog(screen *ebiten.Image) {
 	t := ""
 	switch g.gameState {
 	case start:
-		ebitenutil.DebugPrint(screen, "game start: press Enter to continue")
+		text.Draw(screen, "game start: press Enter to continue", mplusNormalFont, screenWidth/2-100, 30, color.White)
+		return
 	case gorillaDead:
 		if g.gorilla1.alive {
 			t = "Gorilla1 wins!"
@@ -130,20 +145,25 @@ func (g *Game) WriteInputDialog(screen *ebiten.Image) {
 			t = "Gorilla2 wins!"
 		}
 		t = t + "Press Enter to continue."
-		ebitenutil.DebugPrint(screen, t)
+		text.Draw(screen, t, mplusNormalFont, screenWidth/2-100, 30, color.White)
+		return
 	case inputAngle:
 		t = "angle: " + g.inputAngle
-		if g.counter%60 < 30 {
+		if g.counter%30 < 15 {
 			t += "_"
 		}
 	case inputSpeed:
 		t = "angle: " + g.inputAngle + "\nspeed: " + g.inputSpeed
-		if g.counter%60 < 30 {
+		if g.counter%30 < 15 {
 			t += "_"
 
 		}
 	}
-	ebitenutil.DebugPrint(screen, t)
+	loc := gorilla1InputLoc
+	if g.turn == g.gorilla2 {
+		loc = gorilla2InputLoc
+	}
+	text.Draw(screen, t, mplusNormalFont, loc, 60, color.White)
 
 }
 
@@ -159,6 +179,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.banana.Draw(screen)
 	// Write your game's rendering.
 	g.WriteInputDialog(screen)
+	text.Draw(screen, "Gorilla1: "+strconv.Itoa(g.gorilla1.score), mplusNormalFont, 10, 30, color.White)
+	text.Draw(screen, "Gorilla2: "+strconv.Itoa(g.gorilla2.score), mplusNormalFont, screenWidth-150, 30, color.White)
 }
 
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
@@ -449,4 +471,15 @@ func setup(g *Game) {
 	setupBanana(g)
 	// log.Printf("%v", g.gorilla1)
 	// log.Printf("%v", g.gorilla2)
+	tt, err := truetype.Parse(fonts.MPlus1pRegular_ttf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	const dpi = 72
+	mplusNormalFont = truetype.NewFace(tt, &truetype.Options{
+		Size:    20,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
 }
