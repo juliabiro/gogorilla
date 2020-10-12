@@ -37,6 +37,10 @@ const (
 	gorillaDead
 )
 
+const (
+	gravity = 0.98
+)
+
 // Game implements ebiten.Game interface.
 type Game struct {
 	gorilla1   Gorilla
@@ -66,7 +70,7 @@ func repeatingKeyPressed(key ebiten.Key) bool {
 }
 
 func (g *Game) bananaOut() bool {
-	return g.banana.X < 0 || g.banana.X > screenWidth || g.banana.Y < 0 || g.banana.Y > screenHeight
+	return g.banana.X < 0 || g.banana.X > screenWidth || g.banana.Y > screenHeight
 }
 
 func (g *Game) changeTurn() {
@@ -124,6 +128,7 @@ func (g *Game) Update(screen *ebiten.Image) error {
 			handleBackspace(&g.inputSpeed)
 		}
 	case bananaFlying:
+		g.banana.gravity += gravity
 		if g.turn == g.gorilla1 {
 			g.banana.move(right)
 		} else {
@@ -279,6 +284,7 @@ type Banana struct {
 	height      float64
 	angle       float64
 	speed       float64
+	gravity     float64
 }
 
 func (b *Banana) Draw(screen *ebiten.Image) {
@@ -302,6 +308,7 @@ func (b *Banana) move(direction int) {
 	b.orientation += 0.1
 
 	// TODO: apply gravity
+	b.Y += b.gravity
 }
 
 func setupBuildings(g *Game) {
@@ -372,6 +379,7 @@ func setupGorillas(g *Game) {
 func (g *Game) resetBanana() {
 	g.banana.X = g.turn.X + g.turn.width
 	g.banana.Y = g.turn.Y
+	g.banana.gravity = 0.0
 }
 func setupBanana(g *Game) {
 	g.banana.width = 20
