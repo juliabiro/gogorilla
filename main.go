@@ -69,18 +69,6 @@ func repeatingKeyPressed(key ebiten.Key) bool {
 	return false
 }
 
-func (g *Game) bananaOut() bool {
-	return g.banana.X < 0 || g.banana.X > screenWidth || g.banana.Y > screenHeight
-}
-
-func (g *Game) changeTurn() {
-	if g.turn == g.gorilla1 {
-		g.turn = g.gorilla2
-	} else {
-		g.turn = g.gorilla1
-	}
-}
-
 // Update proceeds the game state.
 // Update is called every tick (1/60 [s] by default).
 func handleBackspace(s *string) {
@@ -88,59 +76,44 @@ func handleBackspace(s *string) {
 		*s = (*s)[:len(*s)-1]
 	}
 }
-func (g *Game) Update(screen *ebiten.Image) error {
-	// Write your game's logical update.
+
+func handleEnter(g *Game) {
 	if repeatingKeyPressed(ebiten.KeyEnter) || repeatingKeyPressed(ebiten.KeyKPEnter) {
 		var err error
 		switch g.gameState {
 		case start:
+			g.resetBanana()
 			g.gameState = inputAngle
 		case inputAngle:
 			g.banana.angle, err = strconv.ParseFloat(g.inputAngle, 64)
 			if err != nil {
 				g.inputAngle = ""
-				return nil
 			}
 			g.gameState = inputSpeed
 		case inputSpeed:
 			g.banana.speed, err = strconv.ParseFloat(g.inputSpeed, 64)
 			if err != nil {
 				g.inputSpeed = ""
-				return nil
 			}
 			g.inputAngle = ""
 			g.inputSpeed = ""
 			g.gameState = bananaFlying
-
-		default:
-		}
-	}
-
-	switch g.gameState {
-	case inputAngle:
-		g.inputAngle += string(ebiten.InputChars())
-		if repeatingKeyPressed(ebiten.KeyBackspace) {
-			handleBackspace(&g.inputAngle)
-		}
-	case inputSpeed:
-		g.inputSpeed += string(ebiten.InputChars())
-		if repeatingKeyPressed(ebiten.KeyBackspace) {
-			handleBackspace(&g.inputSpeed)
-		}
-	case bananaFlying:
-		g.banana.gravity += gravity
-		if g.turn == g.gorilla1 {
-			g.banana.move(right)
-		} else {
-			g.banana.move(left)
-		}
-		// TODO: collision detection
-		if g.bananaOut() {
+		case gorillaDead:
+			setupBuildings(g)
+			g.resetGorillas()
 			g.changeTurn()
 			g.resetBanana()
-			g.gameState = inputAngle
+			g.gameState = start
 		}
 	}
+
+}
+func (g *Game) Update(screen *ebiten.Image) error {
+	// Write your game's logical update.
+
+	handleEnter(g)
+	updateGamestate(g)
+
 	g.counter++
 	return nil
 }
@@ -151,7 +124,12 @@ func (g *Game) WriteInputDialog(screen *ebiten.Image) {
 	case start:
 		ebitenutil.DebugPrint(screen, "game start: press Enter to continue")
 	case gorillaDead:
-		t = fmt.Sprintf("%s won! press Enter to continue.", g.turn)
+		if g.gorilla1.alive {
+			t = "Gorilla1 wins!"
+		} else {
+			t = "Gorilla2 wins!"
+		}
+		t = t + "Press Enter to continue."
 		ebitenutil.DebugPrint(screen, t)
 	case inputAngle:
 		t = "angle: " + g.inputAngle
@@ -162,8 +140,8 @@ func (g *Game) WriteInputDialog(screen *ebiten.Image) {
 		t = "angle: " + g.inputAngle + "\nspeed: " + g.inputSpeed
 		if g.counter%60 < 30 {
 			t += "_"
+
 		}
-	default:
 	}
 	ebitenutil.DebugPrint(screen, t)
 
@@ -214,10 +192,12 @@ type scaledImage struct {
 
 type Gorilla struct {
 	Point
-	alive  bool
-	img    scaledImage
-	height float64
-	width  float64
+	alive     bool
+	img       scaledImage
+	height    float64
+	width     float64
+	score     int
+	direction int
 }
 
 func (g *Gorilla) Draw(screen *ebiten.Image) {
@@ -297,6 +277,44 @@ func (b *Banana) Draw(screen *ebiten.Image) {
 
 }
 
+// game logic
+
+func updateGamestate(g *Game) {
+	switch g.gameState {
+	case inputAngle:
+		g.inputAngle += string(ebiten.InputChars())
+		if repeatingKeyPressed(ebiten.KeyBackspace) {
+			handleBackspace(&g.inputAngle)
+		}
+	case inputSpeed:
+		g.inputSpeed += string(ebiten.InputChars())
+		if repeatingKeyPressed(ebiten.KeyBackspace) {
+			handleBackspace(&g.inputSpeed)
+		}
+	case bananaFlying:
+		g.banana.gravity += gravity
+		g.banana.move(g.turn.direction)
+		//  collision detection
+		if g.banana.detectCollisionGorilla(g.gorilla1) {
+			g.gorilla1.alive = false
+			g.gorilla2.score++
+			g.gameState = gorillaDead
+		}
+		if g.banana.detectCollisionGorilla(g.gorilla2) {
+			g.gorilla2.alive = false
+			g.gorilla1.score++
+			g.gameState = gorillaDead
+		}
+
+		if g.bananaOut() {
+			g.changeTurn()
+			g.resetBanana()
+			g.gameState = inputAngle
+		}
+
+	}
+}
+
 func (b *Banana) move(direction int) {
 	if direction == right {
 		b.X += b.speed * math.Cos(b.angle*math.Pi/180)
@@ -307,11 +325,28 @@ func (b *Banana) move(direction int) {
 	b.Y -= b.speed * math.Sin(b.angle*math.Pi/180)
 	b.orientation += 0.1
 
-	// TODO: apply gravity
+	// apply gravity
 	b.Y += b.gravity
 }
 
+func (g *Game) bananaOut() bool {
+	return g.banana.X < 0 || g.banana.X > screenWidth || g.banana.Y > screenHeight
+}
+
+func (g *Game) changeTurn() {
+	if g.turn == g.gorilla1 {
+		g.turn = g.gorilla2
+	} else {
+		g.turn = g.gorilla1
+	}
+}
+func (b *Banana) detectCollisionGorilla(g Gorilla) bool {
+	return math.Sqrt(math.Pow(b.X+b.width/2-(g.X+g.width/2), 2)+math.Pow(b.Y+b.height/2-(g.Y+g.height/2), 2)) < 25
+}
+
+// setup
 func setupBuildings(g *Game) {
+	g.buildings = nil
 	k := 0.0
 	for k < screenWidth {
 		w := float64(100 + rand.Intn(screenWidth/12))
@@ -344,8 +379,7 @@ func setupBuildings(g *Game) {
 	}
 }
 
-func (g *Gorilla) init(minx int, b []Building) {
-
+func (g *Gorilla) setup() {
 	g.alive = true
 	g.width = 50
 	g.height = 50
@@ -355,6 +389,9 @@ func (g *Gorilla) init(minx int, b []Building) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+func (g *Gorilla) reset(minx int, b []Building, direction int) {
+
 	g.X = float64(minx + rand.Intn(0.6*screenWidth/2))
 
 	// find my rooftop
@@ -369,15 +406,25 @@ func (g *Gorilla) init(minx int, b []Building) {
 	if g.X < bb.X || g.X+g.width > bb.X+bb.width {
 		g.X = bb.X + float64(rand.Intn(int(bb.width-g.width)))
 	}
+	g.direction = direction
+	g.alive = true
+}
 
+func (g *Game) resetGorillas() {
+	g.gorilla1.reset(0, g.buildings, right)
+	g.gorilla2.reset(screenWidth/2, g.buildings, left)
 }
 func setupGorillas(g *Game) {
-	g.gorilla1.init(0, g.buildings)
-	g.gorilla2.init(screenWidth/2, g.buildings)
+	g.gorilla1.setup()
+	g.gorilla2.setup()
+	g.resetGorillas()
 }
 
 func (g *Game) resetBanana() {
-	g.banana.X = g.turn.X + g.turn.width
+	g.banana.X = g.turn.X
+	if g.turn.direction == right {
+		g.banana.X += g.turn.width
+	}
 	g.banana.Y = g.turn.Y
 	g.banana.gravity = 0.0
 }
