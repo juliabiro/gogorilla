@@ -83,8 +83,6 @@ func repeatingKeyPressed(key ebiten.Key) bool {
 	return false
 }
 
-// Update proceeds the game state.
-// Update is called every tick (1/60 [s] by default).
 func handleBackspace(s *string) {
 	if len(*s) >= 1 {
 		*s = (*s)[:len(*s)-1]
@@ -122,7 +120,10 @@ func handleEnter(g *Game) {
 	}
 
 }
-func (g *Game) Update(screen *ebiten.Image) error {
+
+// Update proceeds the game state.
+// Update is called every tick (1/60 [s] by default).
+func (g *Game) Update() error {
 	// Write your game's logical update.
 
 	handleEnter(g)
@@ -376,7 +377,7 @@ func setupBuildings(g *Game) {
 		if k+w >= screenWidth {
 			w = screenWidth - k
 		}
-		img, _ := ebiten.NewImage(int(w), int(h), ebiten.FilterDefault)
+		img := ebiten.NewImage(int(w), int(h))
 		c := color.RGBA{0, 0, 100 + uint8(rand.Intn(155)), 255}
 
 		wc := color.RGBA{100 + uint8(rand.Intn(155)), 100 + uint8(rand.Intn(155)), 0, 255}
@@ -386,7 +387,7 @@ func setupBuildings(g *Game) {
 		bh := ww * float64(rand.Intn(15)+8) / 50
 		wh := h / float64((5 + rand.Intn(15)))
 		bv := wh * float64(rand.Intn(15)+8) / 50
-		wimg, _ := ebiten.NewImage(int(ww), int(wh), ebiten.FilterDefault)
+		wimg := ebiten.NewImage(int(ww), int(wh))
 		loff := make(map[string]int)
 		for i := 0.0; i*ww < w; i++ {
 			for j := 0.0; j*wh < h; j++ {
@@ -406,11 +407,11 @@ func (g *Gorilla) setup() {
 	g.width = 50
 	g.height = 50
 	var err error
-	img, _, err := ebitenutil.NewImageFromFile("/Users/juliabiro/go/gorilla/gorilla.png", ebiten.FilterDefault)
-	g.img = scaledImage{img, float64(g.width) / float64(img.Bounds().Dx()), float64(g.height) / float64(img.Bounds().Dy())}
+	img, _, err := ebitenutil.NewImageFromFile("./gorilla.png")
 	if err != nil {
 		log.Fatal(err)
 	}
+	g.img = scaledImage{img, float64(g.width) / float64(img.Bounds().Dx()), float64(g.height) / float64(img.Bounds().Dy())}
 }
 func (g *Gorilla) reset(minx int, b []Building, direction int) {
 
@@ -454,12 +455,12 @@ func setupBanana(g *Game) {
 	g.banana.width = 20
 	g.banana.height = 20
 	var err error
-	img, _, err := ebitenutil.NewImageFromFile("/Users/juliabiro/go/gorilla/banana.png", ebiten.FilterDefault)
-	g.banana.img = scaledImage{img, float64(g.banana.width) / float64(img.Bounds().Dx()), float64(g.banana.height) / float64(img.Bounds().Dy())}
+	img, _, err := ebitenutil.NewImageFromFile("./banana.png")
 
 	if err != nil {
 		log.Fatal(err)
 	}
+	g.banana.img = scaledImage{img, float64(g.banana.width) / float64(img.Bounds().Dx()), float64(g.banana.height) / float64(img.Bounds().Dy())}
 	g.resetBanana()
 }
 
