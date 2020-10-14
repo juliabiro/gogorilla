@@ -3,9 +3,7 @@ package gorilla
 import (
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/inpututil"
-	"github.com/hajimehoshi/ebiten/text"
 	"golang.org/x/image/font"
-	"image/color"
 	"strconv"
 )
 
@@ -74,7 +72,7 @@ func WriteInputDialog(screen *ebiten.Image, g *Game) {
 	t := ""
 	switch g.gameState {
 	case start:
-		text.Draw(screen, "game start: press Enter to continue", mplusNormalFont, ScreenWidth/2-100, 30, color.White)
+		g.textDrawer.Draw(screen, "game start: press Enter to continue", ScreenWidth/2-100, 30)
 		return
 	case gorillaDead:
 		if g.gorilla1.alive {
@@ -83,7 +81,7 @@ func WriteInputDialog(screen *ebiten.Image, g *Game) {
 			t = "Gorilla2 wins!"
 		}
 		t = t + "Press Enter to continue."
-		text.Draw(screen, t, mplusNormalFont, ScreenWidth/2-100, 30, color.White)
+		g.textDrawer.Draw(screen, t, ScreenWidth/2-100, 30)
 		return
 	case inputAngle:
 		t = "angle: " + g.inputAngle
@@ -101,6 +99,6 @@ func WriteInputDialog(screen *ebiten.Image, g *Game) {
 	if g.turn == g.gorilla2 {
 		loc = gorilla2InputLoc
 	}
-	text.Draw(screen, t, mplusNormalFont, loc, 60, color.White)
+	g.textDrawer.Draw(screen, t, loc, 60)
 
 }

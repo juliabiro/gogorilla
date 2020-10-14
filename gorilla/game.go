@@ -1,15 +1,10 @@
 package gorilla
 
 import (
-	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 
-	"github.com/hajimehoshi/ebiten/text"
-	"golang.org/x/image/font"
 	"image/color"
 	_ "image/png"
-	"log"
 	"math/rand"
 	"strconv"
 	"time"
@@ -42,6 +37,7 @@ type Game struct {
 	inputAngle string
 	inputSpeed string
 	counter    int
+	textDrawer *TextDrawer
 }
 
 // Draw draws the game screen.
@@ -56,8 +52,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	DrawBanana(screen, g.banana)
 	// Write your game's rendering.
 	WriteInputDialog(screen, g)
-	text.Draw(screen, "Gorilla1: "+strconv.Itoa(g.gorilla1.score), mplusNormalFont, 10, 30, color.White)
-	text.Draw(screen, "Gorilla2: "+strconv.Itoa(g.gorilla2.score), mplusNormalFont, ScreenWidth-150, 30, color.White)
+	g.textDrawer.Draw(screen, "Gorilla1: "+strconv.Itoa(g.gorilla1.score), 10, 30)
+	g.textDrawer.Draw(screen, "Gorilla2: "+strconv.Itoa(g.gorilla2.score), ScreenWidth-150, 30)
 }
 
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
@@ -80,6 +76,7 @@ func (g *Game) Update(screen *ebiten.Image) error {
 
 func (g *Game) Setup() {
 	rand.Seed(time.Now().UnixNano())
+	g.textDrawer = NewTextDrawer(color.White)
 	g.gameState = start
 	setupBuildings(g)
 	setupGorillas(g)
@@ -87,17 +84,7 @@ func (g *Game) Setup() {
 	setupBanana(g)
 	// log.Printf("%v", g.gorilla1)
 	// log.Printf("%v", g.gorilla2)
-	tt, err := truetype.Parse(fonts.MPlus1pRegular_ttf)
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	const dpi = 72
-	mplusNormalFont = truetype.NewFace(tt, &truetype.Options{
-		Size:    20,
-		DPI:     dpi,
-		Hinting: font.HintingFull,
-	})
 }
 
 // game logic
