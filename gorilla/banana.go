@@ -60,3 +60,15 @@ func setupBanana(g *Game) {
 	g.banana.img = ScaledImage{img, float64(g.banana.width) / float64(img.Bounds().Dx()), float64(g.banana.height) / float64(img.Bounds().Dy())}
 	g.resetBanana()
 }
+
+func (b *Banana) Drawable() (*ebiten.Image, *ebiten.DrawImageOptions) {
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(b.img.scaleX, b.img.scaleY)
+	op.GeoM.Rotate(float64(b.orientation))
+	// the order is important here: the image needs to be scaled before it is moved
+	op.GeoM.Translate(float64(b.X), float64(b.Y))
+
+	return b.img.Image, op
+	//screen.DrawImage(b.img.Image, op)
+
+}

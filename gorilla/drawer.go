@@ -10,8 +10,8 @@ import (
 	"log"
 )
 
-type Drawer interface {
-	Draw(screen *ebiten.Image)
+type Drawable interface {
+	Draw() (img *ebiten.Image, op ebiten.DrawImageOptions)
 }
 
 type TextDrawer struct {

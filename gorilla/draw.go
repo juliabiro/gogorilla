@@ -44,13 +44,3 @@ func DrawGorilla(screen *ebiten.Image, g Gorilla) {
 	op.GeoM.Translate(float64(g.X), float64(g.Y))
 	screen.DrawImage(g.img.Image, op)
 }
-
-func DrawBanana(screen *ebiten.Image, b Banana) {
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Scale(b.img.scaleX, b.img.scaleY)
-	op.GeoM.Rotate(float64(b.orientation))
-	// the order is important here: the image needs to be scaled before it is moved
-	op.GeoM.Translate(float64(b.X), float64(b.Y))
-	screen.DrawImage(b.img.Image, op)
-
-}

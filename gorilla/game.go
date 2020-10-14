@@ -49,7 +49,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	DrawGorilla(screen, g.gorilla1)
 	DrawGorilla(screen, g.gorilla2)
-	DrawBanana(screen, g.banana)
+	screen.DrawImage(g.banana.Drawable())
+	//DrawBanana(screen, g.banana)
 	// Write your game's rendering.
 	WriteInputDialog(screen, g)
 	g.textDrawer.Draw(screen, "Gorilla1: "+strconv.Itoa(g.gorilla1.score), 10, 30)
