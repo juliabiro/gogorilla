@@ -15,6 +15,6 @@ jobs:
           REF: ${{ github.head_ref }}
         run: echo "$EVENT $REF"
       - uses: hmarr/auto-approve-action@v2.0.0
-        if: startsWith(github.head_ref, 'revert-') && startsWith(github.event.pull_request.title, 'Revert' )
+        if: startsWith(github.head_ref, 'revert-') && startsWith(github.event.pull_request.title, 'Revert' ) && github.event.pull_request.state == 'open'
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
