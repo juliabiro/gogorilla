@@ -11,10 +11,9 @@ jobs:
     steps:
       - name: log
         env:
-          PR: ${{ github.pull_request}}
-          TITLE: ${{ github.pull_request.title }}
+          EVENT: ${{ github.event}}
           REF: ${{ github.head_ref }}
-        run: echo "$PR $TITLE $REF"
+        run: echo "$EVENT $REF"
       - uses: hmarr/auto-approve-action@v2.0.0
         if: startsWith(github.head_ref, 'revert-') && startsWith(github.pull_request.title, 'Revert' )
         with:
