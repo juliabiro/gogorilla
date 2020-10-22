@@ -10,6 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: hmarr/auto-approve-action@v2.0.0
-        if: startsWith( github.pull_request.title, 'Revert' ) && startsWith(github.ref, 'revert-')
+        if: startsWith( github.pull_request.title, 'Revert' ) && startsWith(github.head_ref, 'revert-')
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
