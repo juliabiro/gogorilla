@@ -3,13 +3,13 @@ name: Revert PR auto-approve
 on:
   pull_request:
     branches:
-      - 'revert-**'
+      - 'master'
 
 jobs:
   auto-approve:
     runs-on: ubuntu-latest
     steps:
       - uses: hmarr/auto-approve-action@v2.0.0
-        if: contains('revert', github.pull_request.title)
+        if: contains('revert', github.pull_request.title) && startWith(github.ref, 'revert-')
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
