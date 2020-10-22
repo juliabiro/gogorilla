@@ -9,11 +9,6 @@ jobs:
   auto-approve:
     runs-on: ubuntu-latest
     steps:
-      - name: log
-        env:
-          EVENT: ${{ github.event.pull_request.title}}
-          REF: ${{ github.head_ref }}
-        run: echo "$EVENT $REF"
       - uses: hmarr/auto-approve-action@v2.0.0
         if: startsWith(github.head_ref, 'revert-') && startsWith(github.event.pull_request.title, 'Revert' ) && github.event.pull_request.state == 'open'
         with:
