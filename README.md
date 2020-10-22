@@ -15,4 +15,3 @@ Dependencies are handled by [dep](https://golang.github.io/dep/); run `dep ensur
 
 ```$ ./main```
 
-
