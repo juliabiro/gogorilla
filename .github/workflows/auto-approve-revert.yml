@@ -10,7 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: log
-        run: echo $GITHUB_CONTEXT
+        env: 
+          PR: ${{ toJson(hithub.pull_request) }}
+        run: echo $PR
       - uses: hmarr/auto-approve-action@v2.0.0
         if: startsWith(github.pull_request.title, 'revert') && startsWith(github.head_ref, 'revert-')
         with:
