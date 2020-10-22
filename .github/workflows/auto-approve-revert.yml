@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: log
         env:
-          EVENT: ${{ github.event}}
+          EVENT: ${{ github.event.pull_request.title}}
           REF: ${{ github.head_ref }}
         run: echo "$EVENT $REF"
       - uses: hmarr/auto-approve-action@v2.0.0
