@@ -3,7 +3,7 @@ name: Revert PR auto-approve
 on:
   pull_request:
     branches:
-      - 'revert-[0-9]+-**'
+      - 'revert-**'
 
 jobs:
   auto-approve:
