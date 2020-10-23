@@ -2,5 +2,8 @@ language: go
 go:
   - "1.15.2"
 
+before_install:
+- sudo apt-get install xorg-dev
+
 script:
   go build main.go
