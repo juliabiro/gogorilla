@@ -72,15 +72,15 @@ func WriteInputDialog(screen *ebiten.Image, g *Game) {
 	t := ""
 	switch g.gameState {
 	case start:
-		g.textDrawer.Draw(screen, "game start: press Enter to continue", ScreenWidth/2-100, 30)
+		g.textDrawer.Draw(screen, "Game start: press Enter to continue", ScreenWidth/2-100, 30)
 		return
 	case gorillaDead:
 		if g.gorilla1.alive {
-			t = "Gorilla1 wins!"
+			t = "Green Gorilla wins!"
 		} else {
-			t = "Gorilla2 wins!"
+			t = "Red Gorilla wins!"
 		}
-		t = t + "Press Enter to continue."
+		t = t + " Press Enter to continue."
 		g.textDrawer.Draw(screen, t, ScreenWidth/2-100, 30)
 		return
 	case inputAngle:

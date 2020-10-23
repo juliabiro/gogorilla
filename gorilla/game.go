@@ -54,8 +54,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	//DrawBanana(screen, g.banana)
 	// Write your game's rendering.
 	WriteInputDialog(screen, g)
-	g.textDrawer.Draw(screen, "Gorilla1: "+strconv.Itoa(g.gorilla1.score), 10, 30)
-	g.textDrawer.Draw(screen, "Gorilla2: "+strconv.Itoa(g.gorilla2.score), ScreenWidth-150, 30)
+	g.textDrawer.Draw(screen, "Green Gorilla: "+strconv.Itoa(g.gorilla1.score), 10, 30)
+	g.textDrawer.Draw(screen, "Red Gorilla: "+strconv.Itoa(g.gorilla2.score), ScreenWidth-150, 30)
 }
 
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
