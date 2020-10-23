@@ -29,7 +29,7 @@
   revision = "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4"
 
 [[projects]]
-  digest = "1:6c5182e961d6ee4ed061bfddf9ccb38c9a36d414e05a2820e624981d8ef7c4fc"
+  digest = "1:83216f7b2e3394b9144773de838eeb3de917cdfe0888919c850617a708e283a1"
   name = "github.com/hajimehoshi/ebiten"
   packages = [
     ".",
@@ -71,8 +71,8 @@
     "text",
   ]
   pruneopts = "UT"
-  revision = "57eab0f1a896558f6bfec6234c90b7198304f6e0"
-  version = "v1.12.1"
+  revision = "320282667f6210b622b4fede26382c21e6521bb0"
+  version = "v1.12.2"
 
 [[projects]]
   branch = "master"
@@ -137,18 +137,18 @@
   name = "golang.org/x/sync"
   packages = ["errgroup"]
   pruneopts = "UT"
-  revision = "b3e1573b75205f2905c4b27986413d2e2be9803c"
+  revision = "67f06af15bc961c363a7260195bcd53487529a21"
 
 [[projects]]
   branch = "master"
-  digest = "1:d7aaf8d865c57b60caa6bf55843771cdc4f7b2d6e6c875f7cf4d128be9d184a3"
+  digest = "1:0886009a83a3d3bc7ff525223d194efb1d2b49f3dca9d2c272aa377e6b9052b8"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "2da7054afaeb62259b1cc931cdaca533392f2c77"
+  revision = "fb209a7c41cd8505b3b047ae14763a4d3d06fa19"
 
 [[projects]]
   branch = "master"
@@ -156,7 +156,7 @@
   name = "golang.org/x/tools"
   packages = ["go/ast/astutil"]
   pruneopts = "UT"
-  revision = "2db1cd79103977d245650c90d9f2a5c0d591c152"
+  revision = "c8cfbd0f21e6146422c1927945569c9c855a56bc"
 
 [solve-meta]
   analyzer-name = "dep"
