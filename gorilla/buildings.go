@@ -53,16 +53,27 @@ func newWindows(w, h float64) *Windows {
 	wc := color.RGBA{100 + uint8(rand.Intn(155)), 100 + uint8(rand.Intn(155)), 0, 255}
 	locrand := uint8(rand.Intn(55))
 	loc := color.RGBA{100 + locrand, 100 + locrand, 100 + locrand, 255}
-	ww := w / float64((5 + rand.Intn(8)))
-	bh := ww * float64(rand.Intn(15)+8) / 50
-	wh := h / float64((5 + rand.Intn(15)))
-	bv := wh * float64(rand.Intn(15)+8) / 50
-	ch := w / ww
-	cv := h / wh
+	// how many windows we have
+	ch := 5 + rand.Intn(8)
+	cv := 5 + rand.Intn(15)
+	// what is the width of a window unit (including frame)
+	ww := w / float64(ch)
+	wh := h / float64(cv)
+
+	// what are the border thicknesses (in percentge of the whole window)
+	th := float64(rand.Intn(40)+15) / 100
+	tv := float64(rand.Intn(40)+15) / 100
+
+	bh := ww * th / 2
+	bv := wh * tv / 2
+
+	// scale the window dmensions so they represent the drawable dimensions:
+	ww = ww * (1 - th)
+	wh = wh * (1 - tv)
 	wimg, _ := ebiten.NewImage(int(ww), int(wh), ebiten.FilterDefault)
 	loff := make(map[string]int)
-	for i := 0.0; i*ww < w; i++ {
-		for j := 0.0; j*wh < h; j++ {
+	for i := 0; i < ch; i++ {
+		for j := 0; j < cv; j++ {
 			if rand.Intn(10) < 2 {
 				loff[fmt.Sprintf("%s,%s", i, j)] = 1
 			}
@@ -84,19 +95,15 @@ func (b *Building) DrawingParameters() (*ebiten.Image, *ebiten.DrawImageOptions)
 
 func (w *Windows) Draw(img *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
-
-	//scaleX := float64(w.width-2*w.borderHorizontal) / float64(w.width)
-	//scaleY := float64(w.height-2*w.borderVertical) / float64(w.height)
 	for i := 0; i < w.countHorizontal; i++ {
 		for j := 0; j < w.countVertical; j++ {
 			op.GeoM.Reset()
-			//op.GeoM.Scale(scaleX, scaleY)
 			if w.lightsOff[fmt.Sprintf("%s,%s", i, j)] == 1 {
 				w.img.Fill(w.lightsOffColor)
 			} else {
 				w.img.Fill(w.color)
 			}
-			op.GeoM.Translate(float64(i)*(w.width+w.borderHorizontal), float64(j)*(w.height+w.borderVertical))
+			op.GeoM.Translate(w.borderHorizontal+float64(i)*(w.width+2*w.borderHorizontal), w.borderVertical+float64(j)*(w.height+2*w.borderVertical))
 			img.DrawImage(w.img, op)
 		}
 	}
