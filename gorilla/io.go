@@ -58,7 +58,7 @@ func handleEnter(g *Game) {
 			g.inputSpeed = ""
 			g.gameState = bananaFlying
 		case gorillaDead:
-			setupBuildings(g)
+			g.setupBuildings()
 			g.resetGorillas()
 			g.changeTurn()
 			g.resetBanana()
