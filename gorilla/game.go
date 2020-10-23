@@ -45,11 +45,11 @@ type Game struct {
 func (g *Game) Draw(screen *ebiten.Image) {
 
 	for _, b := range g.buildings {
-		DrawBuilding(screen, b)
+		screen.DrawImage(b.DrawingParameters())
 	}
 	DrawGorilla(screen, g.gorilla1)
 	DrawGorilla(screen, g.gorilla2)
-	screen.DrawImage(g.banana.Drawable())
+	screen.DrawImage(g.banana.DrawingParameters())
 	//DrawBanana(screen, g.banana)
 	// Write your game's rendering.
 	WriteInputDialog(screen, g)

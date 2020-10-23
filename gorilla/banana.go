@@ -61,7 +61,7 @@ func setupBanana(g *Game) {
 	g.resetBanana()
 }
 
-func (b *Banana) Drawable() (*ebiten.Image, *ebiten.DrawImageOptions) {
+func (b *Banana) DrawingParameters() (*ebiten.Image, *ebiten.DrawImageOptions) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(b.img.scaleX, b.img.scaleY)
 	op.GeoM.Rotate(float64(b.orientation))

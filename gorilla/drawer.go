@@ -11,7 +11,7 @@ import (
 )
 
 type Drawable interface {
-	Draw() (img *ebiten.Image, op ebiten.DrawImageOptions)
+	DrawingParameters() (img *ebiten.Image, op ebiten.DrawImageOptions)
 }
 
 type TextDrawer struct {
