@@ -3,7 +3,7 @@ go:
   - "1.15.2"
 
 before_install:
-- sudo apt-get install xorg-dev
+- sudo apt-get install xorg-dev libgl1-mesa-dev
 
 script:
   go build main.go
