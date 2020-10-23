@@ -75,11 +75,22 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	return nil
 }
 
+func (g *Game) setupBuildings() {
+	g.buildings = nil
+	k := 0.0
+	for k < ScreenWidth {
+		b := NewBuilding(k)
+		g.buildings = append(g.buildings, *b)
+		k = k + b.width
+	}
+}
+
 func (g *Game) Setup() {
 	rand.Seed(time.Now().UnixNano())
 	g.textDrawer = NewTextDrawer(color.White)
 	g.gameState = start
-	setupBuildings(g)
+	g.setupBuildings()
+
 	setupGorillas(g)
 	g.turn = g.gorilla1
 	setupBanana(g)
