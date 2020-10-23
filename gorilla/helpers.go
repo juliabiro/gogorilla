@@ -13,3 +13,7 @@ type ScaledImage struct {
 	*ebiten.Image
 	scaleX, scaleY float64
 }
+
+type Center interface {
+	Center() (X float64, Y float64)
+}

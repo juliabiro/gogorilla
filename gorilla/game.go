@@ -5,6 +5,7 @@ import (
 
 	"image/color"
 	_ "image/png"
+	"math"
 	"math/rand"
 	"strconv"
 	"time"
@@ -28,11 +29,11 @@ const (
 
 // Game implements ebiten.Game interface.
 type Game struct {
-	gorilla1   Gorilla
-	gorilla2   Gorilla
+	gorilla1   *Gorilla
+	gorilla2   *Gorilla
 	buildings  []Building
-	banana     Banana
-	turn       Gorilla
+	banana     *Banana
+	turn       *Gorilla
 	gameState  int
 	inputAngle string
 	inputSpeed string
@@ -47,8 +48,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	for _, b := range g.buildings {
 		screen.DrawImage(b.DrawingParameters())
 	}
-	DrawGorilla(screen, g.gorilla1)
-	DrawGorilla(screen, g.gorilla2)
+	screen.DrawImage(g.gorilla1.DrawingParamaters())
+	screen.DrawImage(g.gorilla2.DrawingParamaters())
 	screen.DrawImage(g.banana.DrawingParameters())
 	//DrawBanana(screen, g.banana)
 	// Write your game's rendering.
@@ -91,11 +92,9 @@ func (g *Game) Setup() {
 	g.gameState = start
 	g.setupBuildings()
 
-	setupGorillas(g)
+	g.setupGorillas()
 	g.turn = g.gorilla1
-	setupBanana(g)
-	// log.Printf("%v", g.gorilla1)
-	// log.Printf("%v", g.gorilla2)
+	g.setupBanana()
 
 }
 
@@ -117,12 +116,12 @@ func (g *Game) updateGamestate() {
 		g.banana.gravity += gravity
 		g.banana.move(g.turn.direction)
 		//  collision detection
-		if g.banana.detectCollisionGorilla(g.gorilla1) {
+		if detectCollision(g.banana, g.gorilla1) {
 			g.gorilla1.alive = false
 			g.gorilla2.score++
 			g.gameState = gorillaDead
 		}
-		if g.banana.detectCollisionGorilla(g.gorilla2) {
+		if detectCollision(g.banana, g.gorilla2) {
 			g.gorilla2.alive = false
 			g.gorilla1.score++
 			g.gameState = gorillaDead
@@ -136,6 +135,17 @@ func (g *Game) updateGamestate() {
 
 	}
 }
+
+func distance(p1 Center, p2 Center) float64 {
+	x1, y1 := p1.Center()
+	x2, y2 := p2.Center()
+	return math.Sqrt(math.Pow(x1-x2, 2) + math.Pow(y1-y2, 2))
+}
+
+func detectCollision(p1 Center, p2 Center) bool {
+	return distance(p1, p2) < 25
+}
+
 func (g *Game) changeTurn() {
 	if g.turn == g.gorilla1 {
 		g.turn = g.gorilla2
@@ -148,8 +158,19 @@ func (g *Game) resetGorillas() {
 	g.gorilla2.reset(ScreenWidth/2, g.buildings, left)
 }
 
-func setupGorillas(g *Game) {
-	g.gorilla1.setup()
-	g.gorilla2.setup()
+func (g *Game) setupGorillas() {
+	g.gorilla1 = NewGorilla()
+	g.gorilla2 = NewGorilla()
 	g.resetGorillas()
+}
+
+func (g *Game) setupBanana() {
+	g.banana = NewBanana()
+	g.resetBanana()
+
+}
+
+func (g *Game) resetBanana() {
+	g.banana.reset()
+	g.banana.alignWithGorilla(*g.turn)
 }

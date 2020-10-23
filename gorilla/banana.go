@@ -22,6 +22,10 @@ type Banana struct {
 	gravity     float64
 }
 
+func (b *Banana) Center() (X, Y float64) {
+	return b.X + b.width/2, b.Y + b.height/2
+}
+
 func (b *Banana) move(direction int) {
 	if direction == right {
 		b.X += b.speed * math.Cos(b.angle*math.Pi/180)
@@ -40,25 +44,18 @@ func (g *Game) bananaOut() bool {
 	return g.banana.X < 0 || g.banana.X > ScreenWidth || g.banana.Y > ScreenHeight
 }
 
-func (g *Game) resetBanana() {
-	g.banana.X = g.turn.X
-	if g.turn.direction == right {
-		g.banana.X += g.turn.width
-	}
-	g.banana.Y = g.turn.Y
-	g.banana.gravity = 0.0
-}
-func setupBanana(g *Game) {
-	g.banana.width = 20
-	g.banana.height = 20
+func NewBanana() *Banana {
+	b := Banana{}
+	b.width = 20
+	b.height = 20
 	var err error
 	img, _, err := ebitenutil.NewImageFromFile("./banana.png", ebiten.FilterDefault)
 
 	if err != nil {
 		log.Fatal(err)
 	}
-	g.banana.img = ScaledImage{img, float64(g.banana.width) / float64(img.Bounds().Dx()), float64(g.banana.height) / float64(img.Bounds().Dy())}
-	g.resetBanana()
+	b.img = ScaledImage{img, float64(b.width) / float64(img.Bounds().Dx()), float64(b.height) / float64(img.Bounds().Dy())}
+	return &b
 }
 
 func (b *Banana) DrawingParameters() (*ebiten.Image, *ebiten.DrawImageOptions) {
@@ -71,4 +68,18 @@ func (b *Banana) DrawingParameters() (*ebiten.Image, *ebiten.DrawImageOptions) {
 	return b.img.Image, op
 	//screen.DrawImage(b.img.Image, op)
 
+}
+
+func (b *Banana) reset() {
+	b.X = 0
+	b.Y = 0
+	b.gravity = 0.0
+}
+
+func (b *Banana) alignWithGorilla(g Gorilla) {
+	b.X = g.X
+	b.Y = g.Y
+	if g.direction == right {
+		b.X += g.width
+	}
 }

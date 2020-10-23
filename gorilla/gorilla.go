@@ -6,7 +6,6 @@ import (
 
 	_ "image/png"
 	"log"
-	"math"
 	"math/rand"
 )
 
@@ -25,12 +24,9 @@ type Gorilla struct {
 	direction int
 }
 
-func (b *Banana) detectCollisionGorilla(g Gorilla) bool {
-	return math.Sqrt(math.Pow(b.X+b.width/2-(g.X+g.width/2), 2)+math.Pow(b.Y+b.height/2-(g.Y+g.height/2), 2)) < 25
-}
-
 // TODO turn into factory function
-func (g *Gorilla) setup() {
+func NewGorilla() *Gorilla {
+	g := Gorilla{}
 	g.alive = true
 	g.width = 50
 	g.height = 50
@@ -40,7 +36,13 @@ func (g *Gorilla) setup() {
 		log.Fatal(err)
 	}
 	g.img = ScaledImage{img, float64(g.width) / float64(img.Bounds().Dx()), float64(g.height) / float64(img.Bounds().Dy())}
+	return &g
 }
+
+func (g *Gorilla) Center() (X, Y float64) {
+	return g.X + g.width/2, g.Y + g.height/2
+}
+
 func (g *Gorilla) reset(minx int, b []Building, direction int) {
 
 	g.X = float64(minx + rand.Intn(0.6*ScreenWidth/2))
