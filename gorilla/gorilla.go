@@ -25,13 +25,20 @@ type Gorilla struct {
 }
 
 // TODO turn into factory function
-func NewGorilla() *Gorilla {
+func NewGorilla(direction int) *Gorilla {
 	g := Gorilla{}
 	g.alive = true
 	g.width = 50
 	g.height = 50
+	g.direction = direction
+
+	file := "./gorilla1.png"
+	if direction == right {
+		file = "./gorilla2.png"
+	}
 	var err error
-	img, _, err := ebitenutil.NewImageFromFile("./gorilla.png", ebiten.FilterDefault)
+
+	img, _, err := ebitenutil.NewImageFromFile(file, ebiten.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,10 +50,20 @@ func (g *Gorilla) Center() (X, Y float64) {
 	return g.X + g.width/2, g.Y + g.height/2
 }
 
-func (g *Gorilla) reset(minx int, b []Building, direction int) {
+func (g *Gorilla) reset(b []Building) {
+
+	minx := 0
+	if g.direction == left {
+		minx = ScreenWidth / 2
+	}
 
 	g.X = float64(minx + rand.Intn(0.6*ScreenWidth/2))
 
+	g.sitOnRooftop(b)
+	g.revive()
+}
+
+func (g *Gorilla) sitOnRooftop(b []Building) {
 	// find my rooftop
 	i := 0
 	for g.X > b[i].X+float64(b[i].width) {
@@ -59,6 +76,17 @@ func (g *Gorilla) reset(minx int, b []Building, direction int) {
 	if g.X < bb.X || g.X+g.width > bb.X+bb.width {
 		g.X = bb.X + float64(rand.Intn(int(bb.width-g.width)))
 	}
-	g.direction = direction
+
+}
+
+func (g *Gorilla) kill() {
+	g.alive = false
+}
+
+func (g *Gorilla) revive() {
 	g.alive = true
+}
+
+func (g *Gorilla) increaseScore() {
+	g.score++
 }
