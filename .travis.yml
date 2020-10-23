@@ -2,8 +2,5 @@ language: go
 go:
   - "1.15.2"
 
-install:
-  - apt-get install xorgs-dev
-
 script:
   go build main.go
