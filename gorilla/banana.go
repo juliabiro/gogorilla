@@ -83,3 +83,7 @@ func (b *Banana) alignWithGorilla(g Gorilla) {
 		b.X += g.width
 	}
 }
+
+func (b *Banana) applyGravity(gravity float64) {
+	b.gravity += gravity
+}

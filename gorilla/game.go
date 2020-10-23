@@ -113,7 +113,7 @@ func (g *Game) updateGamestate() {
 			handleBackspace(&g.inputSpeed)
 		}
 	case bananaFlying:
-		g.banana.gravity += gravity
+		g.banana.applyGravity(gravity)
 		g.banana.move(g.turn.direction)
 		//  collision detection
 		if detectCollision(g.banana, g.gorilla1) {
