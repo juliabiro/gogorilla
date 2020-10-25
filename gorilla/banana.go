@@ -34,7 +34,7 @@ func (b *Banana) move(direction int) {
 	}
 
 	b.Y -= b.speed * math.Sin(b.angle*math.Pi/180)
-	b.orientation += 0.1
+	b.orientation += b.speed / 100
 
 	// apply gravity
 	b.Y += b.gravity
@@ -60,14 +60,12 @@ func NewBanana() *Banana {
 
 func (b *Banana) DrawingParameters() (*ebiten.Image, *ebiten.DrawImageOptions) {
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Scale(b.img.scaleX, b.img.scaleY)
-	op.GeoM.Rotate(float64(b.orientation))
 	// the order is important here: the image needs to be scaled before it is moved
+	op.GeoM.Rotate(float64(b.orientation))
+	op.GeoM.Scale(b.img.scaleX, b.img.scaleY)
 	op.GeoM.Translate(float64(b.X), float64(b.Y))
 
 	return b.img.Image, op
-	//screen.DrawImage(b.img.Image, op)
-
 }
 
 func (b *Banana) reset() {
