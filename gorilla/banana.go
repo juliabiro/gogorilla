@@ -40,8 +40,8 @@ func (b *Banana) move(direction int) {
 	b.Y += b.gravity
 }
 
-func (g *Game) bananaOut() bool {
-	return g.banana.X < 0 || g.banana.X > ScreenWidth || g.banana.Y > ScreenHeight
+func (b *Banana) Out() bool {
+	return b.X < 0 || b.X > ScreenWidth || b.Y > ScreenHeight
 }
 
 func NewBanana() *Banana {
@@ -86,4 +86,12 @@ func (b *Banana) alignWithGorilla(g Gorilla) {
 
 func (b *Banana) applyGravity(gravity float64) {
 	b.gravity += gravity
+}
+
+func (b *Banana) setAngle(angle float64) {
+	b.angle = angle
+}
+
+func (b *Banana) setSpeed(speed float64) {
+	b.speed = speed
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/inpututil"
 	"golang.org/x/image/font"
+	"log"
 	"strconv"
 )
 
@@ -12,9 +13,9 @@ const (
 	gorilla2InputLoc = ScreenWidth - 120
 )
 
-var (
-	mplusNormalFont font.Face
-)
+type IOHandler struct {
+	inputString string
+}
 
 func repeatingKeyPressed(key ebiten.Key) bool {
 	const (
@@ -36,37 +37,32 @@ func handleBackspace(s *string) {
 	}
 }
 
-func handleEnter(g *Game) {
-	if repeatingKeyPressed(ebiten.KeyEnter) || repeatingKeyPressed(ebiten.KeyKPEnter) {
-		var err error
-		switch g.gameState {
-		case start:
-			g.resetBanana()
-			g.gameState = inputAngle
-		case inputAngle:
-			g.banana.angle, err = strconv.ParseFloat(g.inputAngle, 64)
-			if err != nil {
-				g.inputAngle = ""
-			}
-			g.gameState = inputSpeed
-		case inputSpeed:
-			g.banana.speed, err = strconv.ParseFloat(g.inputSpeed, 64)
-			if err != nil {
-				g.inputSpeed = ""
-			}
-			g.inputAngle = ""
-			g.inputSpeed = ""
-			g.gameState = bananaFlying
-		case gorillaDead:
-			g.setupBuildings()
-			g.resetGorillas()
-			g.changeTurn()
-			g.resetBanana()
-			g.gameState = start
-		}
+func (i *IOHandler) handleInput() (parsedValue float64, enterPressed bool) {
+	i.inputString += string(ebiten.InputChars())
+	if repeatingKeyPressed(ebiten.KeyBackspace) {
+		handleBackspace(&i.inputString)
 	}
 
+	return i.handleEnter()
 }
+
+func (i *IOHandler) handleEnter() (parsedValue float64, enterPressed bool) {
+	var val float64
+	if repeatingKeyPressed(ebiten.KeyEnter) || repeatingKeyPressed(ebiten.KeyKPEnter) {
+		var err error
+		val, err = strconv.ParseFloat(i.inputString, 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+		i.inputString = ""
+		return val, true
+	}
+	return val, false
+}
+
+var (
+	mplusNormalFont font.Face
+)
 
 func WriteInputDialog(screen *ebiten.Image, g *Game) {
 	t := ""
@@ -84,12 +80,12 @@ func WriteInputDialog(screen *ebiten.Image, g *Game) {
 		g.textDrawer.Draw(screen, t, ScreenWidth/2-100, 30)
 		return
 	case inputAngle:
-		t = "angle: " + g.inputAngle
+		t = "angle: " + g.iohandler.inputString
 		if g.counter%30 < 15 {
 			t += "_"
 		}
 	case inputSpeed:
-		t = "angle: " + g.inputAngle + "\nspeed: " + g.inputSpeed
+		t = "angle: " + g.iohandler.inputString + "\nspeed: " + g.iohandler.inputString
 		if g.counter%30 < 15 {
 			t += "_"
 

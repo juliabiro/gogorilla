@@ -21,9 +21,11 @@ const (
 
 const (
 	start = iota
+	newLap
 	inputAngle
 	inputSpeed
 	bananaFlying
+	bananaOut
 	gorillaDead
 )
 
@@ -35,15 +37,18 @@ type Game struct {
 	banana     *Banana
 	turn       *Gorilla
 	gameState  int
-	inputAngle string
-	inputSpeed string
 	counter    int
+	iohandler  *IOHandler
 	textDrawer *TextDrawer
 }
 
 // Draw draws the game screen.
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 func (g *Game) Draw(screen *ebiten.Image) {
+	WriteInputDialog(screen, g)
+	if g.gameState == start {
+		return
+	}
 
 	for _, b := range g.buildings {
 		screen.DrawImage(b.DrawingParameters())
@@ -53,7 +58,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.DrawImage(g.banana.DrawingParameters())
 	//DrawBanana(screen, g.banana)
 	// Write your game's rendering.
-	WriteInputDialog(screen, g)
 	g.textDrawer.Draw(screen, "Green Gorilla: "+strconv.Itoa(g.gorilla1.score), 10, 30)
 	g.textDrawer.Draw(screen, "Red Gorilla: "+strconv.Itoa(g.gorilla2.score), ScreenWidth-150, 30)
 }
@@ -73,19 +77,19 @@ func (g *Game) Setup() {
 	g.setupBuildings()
 
 	g.setupGorillas()
-	g.turn = g.gorilla1
+	g.turn = g.gorilla2
 	g.setupBanana()
 
 }
 func (g *Game) setupGorillas() {
 	g.gorilla1 = NewGorilla(right)
 	g.gorilla2 = NewGorilla(left)
-	g.resetGorillas()
+	//g.resetGorillas()
 }
 
 func (g *Game) setupBanana() {
 	g.banana = NewBanana()
-	g.resetBanana()
+	//g.resetBanana()
 
 }
 func (g *Game) setupBuildings() {
@@ -105,24 +109,26 @@ func (g *Game) setupBuildings() {
 func (g *Game) Update(screen *ebiten.Image) error {
 	// Write your game's logical update.
 
-	handleEnter(g)
-	g.updateGamestate()
+	parsedValue, enterPressed := g.iohandler.handleInput()
+	g.updateGamestate(enterPressed)
+	g.updateSprites(parsedValue)
 
 	g.counter++
 	return nil
 }
-func (g *Game) updateGamestate() {
+
+// only sprite updates here
+func (g *Game) updateSprites(parsedValue float64) {
 	switch g.gameState {
+	case newLap:
+		g.setupBuildings()
+		g.resetGorillas()
+		g.changeTurn()
+		g.resetBanana()
 	case inputAngle:
-		g.inputAngle += string(ebiten.InputChars())
-		if repeatingKeyPressed(ebiten.KeyBackspace) {
-			handleBackspace(&g.inputAngle)
-		}
+		g.banana.setAngle(parsedValue)
 	case inputSpeed:
-		g.inputSpeed += string(ebiten.InputChars())
-		if repeatingKeyPressed(ebiten.KeyBackspace) {
-			handleBackspace(&g.inputSpeed)
-		}
+		g.banana.setSpeed(parsedValue)
 	case bananaFlying:
 		g.banana.applyGravity(gravity)
 		g.banana.move(g.turn.direction)
@@ -130,20 +136,51 @@ func (g *Game) updateGamestate() {
 		if detectCollision(g.banana, g.gorilla1) {
 			g.gorilla1.kill()
 			g.gorilla2.increaseScore()
-			g.gameState = gorillaDead
 		}
 		if detectCollision(g.banana, g.gorilla2) {
 			g.gorilla2.kill()
 			g.gorilla1.increaseScore()
+		}
+
+	case bananaOut:
+		g.changeTurn()
+		g.resetBanana()
+	}
+}
+
+// only state transitions here
+func (g *Game) updateGamestate(enterPressed bool) {
+	switch g.gameState {
+	case start:
+		if enterPressed {
+			g.gameState = newLap
+		}
+	case newLap:
+		g.gameState = inputAngle
+	case inputAngle:
+		if enterPressed {
+			g.gameState = inputSpeed
+		}
+	case inputSpeed:
+		if enterPressed {
+			g.gameState = bananaFlying
+		}
+	case bananaFlying:
+		if g.banana.Out() {
+			g.gameState = bananaOut
+		}
+
+		if !g.gorilla1.alive || !g.gorilla2.alive {
 			g.gameState = gorillaDead
 		}
 
-		if g.bananaOut() {
-			g.changeTurn()
-			g.resetBanana()
-			g.gameState = inputAngle
-		}
+	case bananaOut:
+		g.gameState = inputAngle
 
+	case gorillaDead:
+		if enterPressed {
+			g.gameState = newLap
+		}
 	}
 }
 
