@@ -3,7 +3,6 @@ package gorilla
 import (
 	"github.com/hajimehoshi/ebiten"
 
-	"image/color"
 	_ "image/png"
 	"math"
 	"math/rand"
@@ -31,35 +30,51 @@ const (
 
 // Game implements ebiten.Game interface.
 type Game struct {
-	gorilla1   *Gorilla
-	gorilla2   *Gorilla
-	buildings  []Building
-	banana     *Banana
-	turn       *Gorilla
-	gameState  int
-	counter    int
-	iohandler  *IOHandler
-	textDrawer *TextDrawer
+	gorilla1  *Gorilla
+	gorilla2  *Gorilla
+	buildings []Building
+	banana    *Banana
+	turn      *Gorilla
+	gameState int
+	iohandler *IOHandler
 }
 
 // Draw draws the game screen.
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 func (g *Game) Draw(screen *ebiten.Image) {
-	WriteInputDialog(screen, g)
-	if g.gameState == start {
-		return
-	}
-
+	// Write your game's rendering.
 	for _, b := range g.buildings {
 		screen.DrawImage(b.DrawingParameters())
 	}
+	switch g.gameState {
+	case start:
+		g.iohandler.WriteMessage(screen, "Welcome to the Gorilla Game!\nPress Enter to start!", center)
+
+	case gorillaDead:
+		t := ""
+		if g.gorilla1.alive {
+			t = "Green Gorilla wins!"
+		} else {
+			t = "Red Gorilla wins!"
+		}
+		t = t + "\nPress Enter for a new round!"
+		g.iohandler.WriteMessage(screen, t, center)
+	}
+
 	screen.DrawImage(g.gorilla1.DrawingParamaters())
 	screen.DrawImage(g.gorilla2.DrawingParamaters())
 	screen.DrawImage(g.banana.DrawingParameters())
-	//DrawBanana(screen, g.banana)
-	// Write your game's rendering.
-	g.textDrawer.Draw(screen, "Green Gorilla: "+strconv.Itoa(g.gorilla1.score), 10, 30)
-	g.textDrawer.Draw(screen, "Red Gorilla: "+strconv.Itoa(g.gorilla2.score), ScreenWidth-150, 30)
+
+	side := 0
+	if g.turn == g.gorilla1 {
+		side = leftSide
+	} else {
+		side = rightSide
+	}
+
+	g.iohandler.WriteMessage(screen, "Green Gorilla: "+strconv.Itoa(g.gorilla1.score), leftSide)
+	g.iohandler.WriteMessage(screen, "Red Gorilla: "+strconv.Itoa(g.gorilla2.score), rightSide)
+	g.iohandler.WriteInputDialog(screen, g.gameState, side)
 }
 
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
@@ -72,24 +87,24 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func (g *Game) Setup() {
 	rand.Seed(time.Now().UnixNano())
-	g.textDrawer = NewTextDrawer(color.White)
+	g.iohandler = NewIOHandler()
 	g.gameState = start
-	g.setupBuildings()
 
+	g.setupBuildings()
 	g.setupGorillas()
-	g.turn = g.gorilla2
+	g.turn = g.gorilla1
 	g.setupBanana()
 
 }
 func (g *Game) setupGorillas() {
 	g.gorilla1 = NewGorilla(right)
 	g.gorilla2 = NewGorilla(left)
-	//g.resetGorillas()
+	g.resetGorillas()
 }
 
 func (g *Game) setupBanana() {
 	g.banana = NewBanana()
-	//g.resetBanana()
+	g.resetBanana()
 
 }
 func (g *Game) setupBuildings() {
@@ -110,15 +125,17 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	// Write your game's logical update.
 
 	parsedValue, enterPressed := g.iohandler.handleInput()
-	g.updateGamestate(enterPressed)
-	g.updateSprites(parsedValue)
 
-	g.counter++
+	g.updateSprites(parsedValue, enterPressed)
+
+	// game state change needs to be either at the beginning or the end of this function
+	g.updateGamestate(enterPressed)
+
 	return nil
 }
 
 // only sprite updates here
-func (g *Game) updateSprites(parsedValue float64) {
+func (g *Game) updateSprites(parsedValue float64, enterPressed bool) {
 	switch g.gameState {
 	case newLap:
 		g.setupBuildings()
@@ -126,9 +143,13 @@ func (g *Game) updateSprites(parsedValue float64) {
 		g.changeTurn()
 		g.resetBanana()
 	case inputAngle:
-		g.banana.setAngle(parsedValue)
+		if enterPressed {
+			g.banana.setAngle(parsedValue)
+		}
 	case inputSpeed:
-		g.banana.setSpeed(parsedValue)
+		if enterPressed {
+			g.banana.setSpeed(parsedValue)
+		}
 	case bananaFlying:
 		g.banana.applyGravity(gravity)
 		g.banana.move(g.turn.direction)
@@ -145,6 +166,8 @@ func (g *Game) updateSprites(parsedValue float64) {
 	case bananaOut:
 		g.changeTurn()
 		g.resetBanana()
+		// this is just cosmetic: make sure we don't writ e out the previous input numbers
+		g.iohandler.reset()
 	}
 }
 
@@ -152,8 +175,10 @@ func (g *Game) updateSprites(parsedValue float64) {
 func (g *Game) updateGamestate(enterPressed bool) {
 	switch g.gameState {
 	case start:
+		// this is a special state that we visit only once
+		// we just use it to make sure the opening screen is not bank
 		if enterPressed {
-			g.gameState = newLap
+			g.gameState = inputAngle
 		}
 	case newLap:
 		g.gameState = inputAngle

@@ -4,17 +4,31 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/inpututil"
 	"golang.org/x/image/font"
-	"log"
+	"image/color"
 	"strconv"
 )
 
 const (
 	gorilla1InputLoc = 10
 	gorilla2InputLoc = ScreenWidth - 120
+	center           = ScreenWidth/2 - 100
+	leftSide         = 10
+	rightSide        = ScreenWidth - 150
 )
 
 type IOHandler struct {
-	inputString string
+	inputString     string
+	textDrawer      *TextDrawer
+	counter         int
+	inputDialog     string
+	prevInputString string
+}
+
+func NewIOHandler() *IOHandler {
+	i := IOHandler{}
+	i.textDrawer = NewTextDrawer(color.White)
+	i.reset()
+	return &i
 }
 
 func repeatingKeyPressed(key ebiten.Key) bool {
@@ -52,8 +66,10 @@ func (i *IOHandler) handleEnter() (parsedValue float64, enterPressed bool) {
 		var err error
 		val, err = strconv.ParseFloat(i.inputString, 64)
 		if err != nil {
-			log.Fatal(err)
+			// just ignore invalid input
+			i.inputString = ""
 		}
+		i.prevInputString = i.inputString
 		i.inputString = ""
 		return val, true
 	}
@@ -64,37 +80,34 @@ var (
 	mplusNormalFont font.Face
 )
 
-func WriteInputDialog(screen *ebiten.Image, g *Game) {
-	t := ""
-	switch g.gameState {
-	case start:
-		g.textDrawer.Draw(screen, "Game start: press Enter to continue", ScreenWidth/2-100, 30)
-		return
-	case gorillaDead:
-		if g.gorilla1.alive {
-			t = "Green Gorilla wins!"
-		} else {
-			t = "Red Gorilla wins!"
-		}
-		t = t + " Press Enter to continue."
-		g.textDrawer.Draw(screen, t, ScreenWidth/2-100, 30)
-		return
+func (i *IOHandler) WriteMessage(screen *ebiten.Image, message string, location int) {
+	i.textDrawer.Draw(screen, message, location, 30)
+}
+
+func (i *IOHandler) cursorBlink() {
+	if i.counter%30 < 15 {
+		i.inputDialog += "_"
+	}
+	i.counter++
+}
+
+func (i *IOHandler) reset() {
+	i.inputString = ""
+	i.prevInputString = ""
+	i.inputDialog = ""
+	i.counter = 0
+}
+
+func (i *IOHandler) WriteInputDialog(screen *ebiten.Image, gameState int, side int) {
+	switch gameState {
 	case inputAngle:
-		t = "angle: " + g.iohandler.inputString
-		if g.counter%30 < 15 {
-			t += "_"
-		}
+		i.inputDialog = "angle: " + i.inputString
+		i.cursorBlink()
+
 	case inputSpeed:
-		t = "angle: " + g.iohandler.inputString + "\nspeed: " + g.iohandler.inputString
-		if g.counter%30 < 15 {
-			t += "_"
-
-		}
+		i.inputDialog = "angle: " + i.prevInputString + "\nspeed: " + i.inputString
+		i.cursorBlink()
 	}
-	loc := gorilla1InputLoc
-	if g.turn == g.gorilla2 {
-		loc = gorilla2InputLoc
-	}
-	g.textDrawer.Draw(screen, t, loc, 60)
 
+	i.textDrawer.Draw(screen, i.inputDialog, side, 60)
 }
