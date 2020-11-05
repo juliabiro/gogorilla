@@ -19,6 +19,9 @@ const (
 )
 
 const (
+	imageDir = "./images/"
+)
+const (
 	start = iota
 	newLap
 	inputAngle
@@ -99,11 +102,14 @@ func (g *Game) Setup() {
 func (g *Game) setupGorillas() {
 	g.gorilla1 = NewGorilla(right)
 	g.gorilla2 = NewGorilla(left)
+	g.gorilla1.LoadImage()
+	g.gorilla2.LoadImage()
 	g.resetGorillas()
 }
 
 func (g *Game) setupBanana() {
 	g.banana = NewBanana()
+	g.banana.LoadImage()
 	g.resetBanana()
 
 }

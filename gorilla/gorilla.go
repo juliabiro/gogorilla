@@ -24,17 +24,10 @@ type Gorilla struct {
 	direction int
 }
 
-// TODO turn into factory function
-func NewGorilla(direction int) *Gorilla {
-	g := Gorilla{}
-	g.alive = true
-	g.width = 50
-	g.height = 50
-	g.direction = direction
-
-	file := "./gorilla1.png"
-	if direction == right {
-		file = "./gorilla2.png"
+func (g *Gorilla) LoadImage() {
+	file := imageDir + "gorilla1.png"
+	if g.direction == right {
+		file = imageDir + "gorilla2.png"
 	}
 	var err error
 
@@ -43,6 +36,15 @@ func NewGorilla(direction int) *Gorilla {
 		log.Fatal(err)
 	}
 	g.img = ScaledImage{img, float64(g.width) / float64(img.Bounds().Dx()), float64(g.height) / float64(img.Bounds().Dy())}
+}
+
+func NewGorilla(direction int) *Gorilla {
+	g := Gorilla{}
+	g.alive = true
+	g.width = 50
+	g.height = 50
+	g.direction = direction
+
 	return &g
 }
 

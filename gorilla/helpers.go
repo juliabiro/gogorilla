@@ -17,3 +17,7 @@ type ScaledImage struct {
 type Center interface {
 	Center() (X float64, Y float64)
 }
+
+type LoadImage interface {
+	LoadImage()
+}

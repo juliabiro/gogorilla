@@ -44,17 +44,20 @@ func (b *Banana) Out() bool {
 	return b.X < 0 || b.X > ScreenWidth || b.Y > ScreenHeight
 }
 
-func NewBanana() *Banana {
-	b := Banana{}
-	b.width = 20
-	b.height = 20
-	var err error
-	img, _, err := ebitenutil.NewImageFromFile("./banana.png", ebiten.FilterDefault)
+func (b *Banana) LoadImage() {
+	img, _, err := ebitenutil.NewImageFromFile(imageDir+"banana.png", ebiten.FilterDefault)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 	b.img = ScaledImage{img, float64(b.width) / float64(img.Bounds().Dx()), float64(b.height) / float64(img.Bounds().Dy())}
+
+}
+
+func NewBanana() *Banana {
+	b := Banana{}
+	b.width = 20
+	b.height = 20
 	return &b
 }
 
