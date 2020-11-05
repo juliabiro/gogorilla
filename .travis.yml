@@ -5,5 +5,12 @@ go:
 before_install:
 - sudo apt-get install xorg-dev libgl1-mesa-dev
 
-script:
-  go build main.go
+jobs:
+  include:
+    - stage: build
+      script:
+        go build main.go
+    - stage: test
+      script: go test ./gorilla
+
+
