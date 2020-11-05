@@ -72,7 +72,7 @@ func newWindows(w, h float64) *Windows {
 	for i := 0; i < ch; i++ {
 		for j := 0; j < cv; j++ {
 			if rand.Intn(10) < 2 {
-				loff[fmt.Sprintf("%s,%s", i, j)] = 1
+				loff[fmt.Sprintf("%d,%d", i, j)] = 1
 			}
 		}
 	}
@@ -95,7 +95,7 @@ func (w *Windows) Draw(img *ebiten.Image) {
 	for i := 0; i < w.countHorizontal; i++ {
 		for j := 0; j < w.countVertical; j++ {
 			op.GeoM.Reset()
-			if w.lightsOff[fmt.Sprintf("%s,%s", i, j)] == 1 {
+			if w.lightsOff[fmt.Sprintf("%d,%d", i, j)] == 1 {
 				w.img.Fill(w.lightsOffColor)
 			} else {
 				w.img.Fill(w.color)
