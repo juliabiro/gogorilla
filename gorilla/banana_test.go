@@ -1,6 +1,7 @@
 package gorilla
 
 import (
+	"math"
 	"testing"
 )
 
@@ -54,6 +55,35 @@ func TestOut(t *testing.T) {
 		b.Y = tc.coordinates[1]
 		if b.Out() != tc.out {
 			t.Fatalf("coordinates %f,%f should be out: %t", tc.coordinates[0], tc.coordinates[1], tc.out)
+		}
+	}
+}
+
+func floatEqual(a, b float64) bool {
+	return math.Abs(b-a) < 0.0001 // absolutaley arbitrary tolerance for imprecision
+}
+
+func TestMoveSpeedAngle(t *testing.T) {
+	var bananaMoveSpeedAngleTestCases = []struct {
+		speed, angle     float64
+		changeX, changeY float64
+	}{
+		{0.0, 0.0, 0.0, 0.0},
+		{10.0, 0.0, 10.0, 0.0},
+		{10.0, 90.0, 0.0, -10.0},
+	}
+
+	b := NewBanana()
+	for _, tc := range bananaMoveSpeedAngleTestCases {
+		b.X, b.Y = 0.0, 0.0
+		b.speed = tc.speed
+		b.angle = tc.angle
+		beforeX := b.X
+		beforeY := b.Y
+		b.move(right)
+		changeX := b.X - beforeX
+		if floatEqual(changeX, tc.changeX) != true {
+			t.Fatalf("banana didn't move in the right direction. Speed: %f, angle: %f, new location: %f, %f (moving from 0,0), should be %f, %f", tc.speed, tc.angle, b.X, b.Y, beforeX+tc.changeX, beforeY+tc.changeY)
 		}
 	}
 }
