@@ -7,3 +7,4 @@ before_install:
 
 script:
   go build main.go
+  go test ./...
