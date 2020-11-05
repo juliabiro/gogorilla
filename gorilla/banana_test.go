@@ -1,6 +1,7 @@
 package gorilla
 
 import (
+	"fmt"
 	"math"
 	"testing"
 )
@@ -64,26 +65,144 @@ func floatEqual(a, b float64) bool {
 }
 
 func TestMoveSpeedAngle(t *testing.T) {
-	var bananaMoveSpeedAngleTestCases = []struct {
-		speed, angle     float64
+	type input struct {
+		speed, angle float64
+	}
+	type output struct {
 		changeX, changeY float64
+	}
+	var bananaMoveSpeedAngleTestCases = []struct {
+		in  input
+		out output
 	}{
-		{0.0, 0.0, 0.0, 0.0},
-		{10.0, 0.0, 10.0, 0.0},
-		{10.0, 90.0, 0.0, -10.0},
+		{input{0.0, 0.0}, output{0.0, 0.0}},
+		{input{10.0, 0.0}, output{10.0, 0.0}},
+		{input{10.0, 90.0}, output{0.0, -10.0}},
+		{input{10.0, 45.0}, output{1.0 / math.Sqrt(2) * 10, -1.0 / math.Sqrt(2) * 10}},
 	}
 
 	b := NewBanana()
 	for _, tc := range bananaMoveSpeedAngleTestCases {
 		b.X, b.Y = 0.0, 0.0
-		b.speed = tc.speed
-		b.angle = tc.angle
+		b.speed = tc.in.speed
+		b.angle = tc.in.angle
 		beforeX := b.X
 		beforeY := b.Y
 		b.move(right)
 		changeX := b.X - beforeX
-		if floatEqual(changeX, tc.changeX) != true {
-			t.Fatalf("banana didn't move in the right direction. Speed: %f, angle: %f, new location: %f, %f (moving from 0,0), should be %f, %f", tc.speed, tc.angle, b.X, b.Y, beforeX+tc.changeX, beforeY+tc.changeY)
+		changeY := b.Y - beforeY
+		if floatEqual(changeX, tc.out.changeX) != true || floatEqual(changeY, tc.out.changeY) != true {
+			t.Fatalf("banana didn't move in the right direction. Speed: %f, angle: %f, new location: %f, %f (moving from 0,0), should be %f, %f", tc.in.speed, tc.in.angle, b.X, b.Y, beforeX+tc.out.changeX, beforeY+tc.out.changeY)
+		}
+	}
+}
+
+const (
+	toUp         = "up"
+	toDown       = "down"
+	toRight      = "right"
+	toLeft       = "left"
+	noHorizontal = "no horizontal move"
+	noVertical   = "no vertical move"
+)
+
+func getChangeDirection(beforeX, beforeY, afterX, afterY float64) (string, string) {
+	var w, h = noHorizontal, noVertical
+	if beforeX < afterX {
+		w = toRight
+	}
+	if beforeX > afterX {
+		w = toLeft
+	}
+	if beforeY < afterY {
+		h = toDown
+	}
+	if beforeY > afterY {
+		h = toUp
+	}
+	return w, h
+}
+
+func TestMoveDirection(t *testing.T) {
+	type input struct {
+		speed, angle float64
+		direction    int
+	}
+
+	type output struct {
+		horizontalMoveDirection, verticalMoveDirection string
+	}
+	var bananaMoveDirectionTestCase = []struct {
+		in  input
+		out output
+	}{
+		// base case: 0, 45 or 90 to the right
+		{input{10, 0, right}, output{toRight, noVertical}},
+		{input{10, 90, right}, output{noHorizontal, toUp}},
+		{input{10, 45, right}, output{toRight, toUp}},
+
+		// base case switched to left
+		{input{10, 0, left}, output{toLeft, noVertical}},
+		{input{10, 90, left}, output{noHorizontal, toUp}},
+		{input{10, 45, left}, output{toLeft, toUp}},
+
+		// negative speed to the right and to the left
+		{input{-10, 0, right}, output{toLeft, noVertical}},
+		{input{-10, 90, right}, output{noHorizontal, toUp}},
+		{input{-10, 45, right}, output{toLeft, toUp}},
+		{input{-10, 0, left}, output{toRight, noVertical}},
+		{input{-10, 90, left}, output{noHorizontal, toUp}},
+		{input{-10, 45, left}, output{toRight, toUp}},
+
+		// negative angle to the right and to the left
+		{input{10, 0, right}, output{toRight, noVertical}},
+		{input{10, -90, right}, output{noHorizontal, toDown}},
+		{input{10, -45, right}, output{toRight, toDown}},
+		{input{10, 0, left}, output{toLeft, noVertical}},
+		{input{10, -90, left}, output{noHorizontal, toDown}},
+		{input{10, -45, left}, output{toLeft, toDown}},
+
+		// both speed and angle negative
+		{input{-10, 0, right}, output{toLeft, noVertical}},
+		{input{-10, -90, right}, output{noHorizontal, toDown}},
+		{input{-10, -45, right}, output{toLeft, toDown}},
+
+		{input{-10, 0, left}, output{toRight, noVertical}},
+		{input{-10, -90, left}, output{noHorizontal, toDown}},
+		{input{-10, -45, left}, output{toRight, toDown}},
+
+		// angles over 90 degrees
+		{input{10, 0, right}, output{toRight, noVertical}},
+		{input{10, 90, right}, output{noHorizontal, toUp}},
+		{input{10, 45, right}, output{toRight, toUp}},
+		{input{10, 135, right}, output{toLeft, toUp}},
+		{input{10, 180, right}, output{toLeft, noVertical}},
+		{input{10, 225, right}, output{toLeft, toDown}},
+		{input{10, 270, right}, output{noHorizontal, toDown}},
+		{input{10, 315, right}, output{toRight, toDown}},
+		{input{10, 360, right}, output{toRight, noVertical}},
+		{input{10, 370, right}, output{toRight, toUp}},
+	}
+
+	b := NewBanana()
+	for _, tc := range bananaMoveDirectionTestCase {
+		b.reset()
+		b.speed = tc.in.speed
+		b.angle = tc.in.angle
+		beforeX := b.X
+		beforeY := b.Y
+
+		b.move(tc.in.direction)
+
+		w, h := getChangeDirection(beforeX, beforeY, b.X, b.Y)
+
+		if w != tc.out.horizontalMoveDirection || h != tc.out.verticalMoveDirection {
+			dir := "right"
+			if tc.in.direction == left {
+				dir = "left"
+			}
+			fmt.Printf("banana: %f,%f", b.X, b.Y)
+			t.Fatalf("Banana thrown to the %s with speed %f and angle %f should move %s and %s, but instead it went %s and %s", dir, tc.in.speed, tc.in.angle, tc.out.horizontalMoveDirection, tc.out.verticalMoveDirection, w, h)
 		}
 	}
 }
