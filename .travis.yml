@@ -9,6 +9,8 @@ before_install:
 jobs:
   include:
   - stage: build
+    env:
+      - DISPLAY=':99.0'
     steps:
       - name: build
         script:
