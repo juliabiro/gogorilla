@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	right = iota
-	left
+	Right = iota
+	Left
 )
 
 type Gorilla struct {
@@ -26,7 +26,7 @@ type Gorilla struct {
 
 func (g *Gorilla) LoadImage() {
 	file := imageDir + "gorilla1.png"
-	if g.direction == right {
+	if g.direction == Right {
 		file = imageDir + "gorilla2.png"
 	}
 	var err error
@@ -55,7 +55,7 @@ func (g *Gorilla) Center() (X, Y float64) {
 func (g *Gorilla) reset(b []Building) {
 
 	minx := 0
-	if g.direction == left {
+	if g.direction == Left {
 		minx = ScreenWidth / 2
 	}
 

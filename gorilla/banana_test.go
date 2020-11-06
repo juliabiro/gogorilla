@@ -1,31 +1,35 @@
-package gorilla
+package gorilla_test
 
 import (
 	"fmt"
+	"github.com/juliabiro/gogorilla/gorilla"
 	"math"
 	"testing"
 )
 
 func TestNewBanana(t *testing.T) {
-	b := NewBanana()
-	if b.width == 0 || b.height == 0 {
+	b := gorilla.NewBanana()
+	w, h := b.Dimensions()
+	if w == 0 || h == 0 {
 		t.Errorf("banana dimensions not initialized")
 	}
 }
 
 func TestResetBanana(t *testing.T) {
-	b := NewBanana()
+	b := gorilla.NewBanana()
 	b.X = 3
 	b.Y = 4
-	b.gravity = 7
-	b.reset()
+	_, _, g := b.MoveData()
+
+	b.SetMoveData(10, 45, 7)
+	b.Reset()
 	if b.X != 0 {
 		t.Fatalf("banana X coordinate not reset properly")
 	}
 	if b.Y != 0 {
 		t.Fatalf("banana Y coordinate not reset properly")
 	}
-	if b.gravity != 0.0 {
+	if g != 0.0 {
 		t.Fatalf("banana gravity coordinate not reset properly")
 	}
 }
@@ -38,18 +42,18 @@ func TestOut(t *testing.T) {
 		// inside the image
 		{[2]float64{0.0, 0.0}, false},
 		{[2]float64{5.0, 4.0}, false},
-		{[2]float64{ScreenWidth / 2, ScreenHeight / 2}, false},
+		{[2]float64{gorilla.ScreenWidth / 2, gorilla.ScreenHeight / 2}, false},
 		// out left
 		{[2]float64{-1.0, 0.0}, true},
 		// out right
-		{[2]float64{ScreenWidth + 5, 0.0}, true},
+		{[2]float64{gorilla.ScreenWidth + 5, 0.0}, true},
 		// out up
 		{[2]float64{0, -100.0}, false},
 		// out down
-		{[2]float64{0, ScreenHeight + 5}, true},
+		{[2]float64{0, gorilla.ScreenHeight + 5}, true},
 	}
 
-	b := NewBanana()
+	b := gorilla.NewBanana()
 
 	for _, tc := range bananaLocationTestCases {
 		b.X = tc.coordinates[0]
@@ -81,14 +85,13 @@ func TestMoveSpeedAngle(t *testing.T) {
 		{input{10.0, 45.0}, output{1.0 / math.Sqrt(2) * 10, -1.0 / math.Sqrt(2) * 10}},
 	}
 
-	b := NewBanana()
+	b := gorilla.NewBanana()
 	for _, tc := range bananaMoveSpeedAngleTestCases {
 		b.X, b.Y = 0.0, 0.0
-		b.speed = tc.in.speed
-		b.angle = tc.in.angle
+		b.SetMoveData(tc.in.speed, tc.in.angle, 0)
 		beforeX := b.X
 		beforeY := b.Y
-		b.move(right)
+		b.Move(gorilla.Right)
 		changeX := b.X - beforeX
 		changeY := b.Y - beforeY
 		if floatEqual(changeX, tc.out.changeX) != true || floatEqual(changeY, tc.out.changeY) != true {
@@ -137,68 +140,67 @@ func TestMoveDirection(t *testing.T) {
 		out output
 	}{
 		// base case: 0, 45 or 90 to the right
-		{input{10, 0, right}, output{toRight, noVertical}},
-		{input{10, 90, right}, output{noHorizontal, toUp}},
-		{input{10, 45, right}, output{toRight, toUp}},
+		{input{10, 0, gorilla.Right}, output{toRight, noVertical}},
+		{input{10, 90, gorilla.Right}, output{noHorizontal, toUp}},
+		{input{10, 45, gorilla.Right}, output{toRight, toUp}},
 
 		// base case switched to left
-		{input{10, 0, left}, output{toLeft, noVertical}},
-		{input{10, 90, left}, output{noHorizontal, toUp}},
-		{input{10, 45, left}, output{toLeft, toUp}},
+		{input{10, 0, gorilla.Left}, output{toLeft, noVertical}},
+		{input{10, 90, gorilla.Left}, output{noHorizontal, toUp}},
+		{input{10, 45, gorilla.Left}, output{toLeft, toUp}},
 
-		// negative speed to the right and to the left
-		{input{-10, 0, right}, output{toLeft, noVertical}},
-		{input{-10, 90, right}, output{noHorizontal, toUp}},
-		{input{-10, 45, right}, output{toLeft, toUp}},
-		{input{-10, 0, left}, output{toRight, noVertical}},
-		{input{-10, 90, left}, output{noHorizontal, toUp}},
-		{input{-10, 45, left}, output{toRight, toUp}},
+		// negative speed to the gorilla.Right and to thegorilla.Left
+		{input{-10, 0, gorilla.Right}, output{toLeft, noVertical}},
+		{input{-10, 90, gorilla.Right}, output{noHorizontal, toUp}},
+		{input{-10, 45, gorilla.Right}, output{toLeft, toUp}},
+		{input{-10, 0, gorilla.Left}, output{toRight, noVertical}},
+		{input{-10, 90, gorilla.Left}, output{noHorizontal, toUp}},
+		{input{-10, 45, gorilla.Left}, output{toRight, toUp}},
 
-		// negative angle to the right and to the left
-		{input{10, 0, right}, output{toRight, noVertical}},
-		{input{10, -90, right}, output{noHorizontal, toDown}},
-		{input{10, -45, right}, output{toRight, toDown}},
-		{input{10, 0, left}, output{toLeft, noVertical}},
-		{input{10, -90, left}, output{noHorizontal, toDown}},
-		{input{10, -45, left}, output{toLeft, toDown}},
+		// negative angle to the gorilla.Right and to thegorilla.Left
+		{input{10, 0, gorilla.Right}, output{toRight, noVertical}},
+		{input{10, -90, gorilla.Right}, output{noHorizontal, toDown}},
+		{input{10, -45, gorilla.Right}, output{toRight, toDown}},
+		{input{10, 0, gorilla.Left}, output{toLeft, noVertical}},
+		{input{10, -90, gorilla.Left}, output{noHorizontal, toDown}},
+		{input{10, -45, gorilla.Left}, output{toLeft, toDown}},
 
 		// both speed and angle negative
-		{input{-10, 0, right}, output{toLeft, noVertical}},
-		{input{-10, -90, right}, output{noHorizontal, toDown}},
-		{input{-10, -45, right}, output{toLeft, toDown}},
+		{input{-10, 0, gorilla.Right}, output{toLeft, noVertical}},
+		{input{-10, -90, gorilla.Right}, output{noHorizontal, toDown}},
+		{input{-10, -45, gorilla.Right}, output{toLeft, toDown}},
 
-		{input{-10, 0, left}, output{toRight, noVertical}},
-		{input{-10, -90, left}, output{noHorizontal, toDown}},
-		{input{-10, -45, left}, output{toRight, toDown}},
+		{input{-10, 0, gorilla.Left}, output{toRight, noVertical}},
+		{input{-10, -90, gorilla.Left}, output{noHorizontal, toDown}},
+		{input{-10, -45, gorilla.Left}, output{toRight, toDown}},
 
 		// angles over 90 degrees
-		{input{10, 0, right}, output{toRight, noVertical}},
-		{input{10, 90, right}, output{noHorizontal, toUp}},
-		{input{10, 45, right}, output{toRight, toUp}},
-		{input{10, 135, right}, output{toLeft, toUp}},
-		{input{10, 180, right}, output{toLeft, noVertical}},
-		{input{10, 225, right}, output{toLeft, toDown}},
-		{input{10, 270, right}, output{noHorizontal, toDown}},
-		{input{10, 315, right}, output{toRight, toDown}},
-		{input{10, 360, right}, output{toRight, noVertical}},
-		{input{10, 370, right}, output{toRight, toUp}},
+		{input{10, 0, gorilla.Right}, output{toRight, noVertical}},
+		{input{10, 90, gorilla.Right}, output{noHorizontal, toUp}},
+		{input{10, 45, gorilla.Right}, output{toRight, toUp}},
+		{input{10, 135, gorilla.Right}, output{toLeft, toUp}},
+		{input{10, 180, gorilla.Right}, output{toLeft, noVertical}},
+		{input{10, 225, gorilla.Right}, output{toLeft, toDown}},
+		{input{10, 270, gorilla.Right}, output{noHorizontal, toDown}},
+		{input{10, 315, gorilla.Right}, output{toRight, toDown}},
+		{input{10, 360, gorilla.Right}, output{toRight, noVertical}},
+		{input{10, 370, gorilla.Right}, output{toRight, toUp}},
 	}
 
-	b := NewBanana()
+	b := gorilla.NewBanana()
 	for _, tc := range bananaMoveDirectionTestCase {
-		b.reset()
-		b.speed = tc.in.speed
-		b.angle = tc.in.angle
+		b.Reset()
+		b.SetMoveData(tc.in.speed, tc.in.angle, 0)
 		beforeX := b.X
 		beforeY := b.Y
 
-		b.move(tc.in.direction)
+		b.Move(tc.in.direction)
 
 		w, h := getChangeDirection(beforeX, beforeY, b.X, b.Y)
 
 		if w != tc.out.horizontalMoveDirection || h != tc.out.verticalMoveDirection {
 			dir := "right"
-			if tc.in.direction == left {
+			if tc.in.direction == gorilla.Left {
 				dir = "left"
 			}
 			fmt.Printf("banana: %f,%f", b.X, b.Y)

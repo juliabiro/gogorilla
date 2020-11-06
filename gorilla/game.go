@@ -100,8 +100,8 @@ func (g *Game) Setup() {
 
 }
 func (g *Game) setupGorillas() {
-	g.gorilla1 = NewGorilla(right)
-	g.gorilla2 = NewGorilla(left)
+	g.gorilla1 = NewGorilla(Right)
+	g.gorilla2 = NewGorilla(Left)
 	g.gorilla1.LoadImage()
 	g.gorilla2.LoadImage()
 	g.resetGorillas()
@@ -158,7 +158,7 @@ func (g *Game) updateSprites(parsedValue float64, enterPressed bool) {
 		}
 	case bananaFlying:
 		g.banana.applyGravity(gravity)
-		g.banana.move(g.turn.direction)
+		g.banana.Move(g.turn.direction)
 		//  collision detection
 		if detectCollision(g.banana, g.gorilla1) {
 			g.gorilla1.kill()
@@ -239,6 +239,6 @@ func (g *Game) resetGorillas() {
 }
 
 func (g *Game) resetBanana() {
-	g.banana.reset()
+	g.banana.Reset()
 	g.banana.alignWithGorilla(*g.turn)
 }
