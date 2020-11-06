@@ -111,17 +111,23 @@ const (
 
 func getChangeDirection(beforeX, beforeY, afterX, afterY float64) (string, string) {
 	var w, h = noHorizontal, noVertical
-	if beforeX < afterX {
-		w = toRight
+
+	if !floatEqual(beforeX, afterX) {
+		if beforeX < afterX {
+			w = toRight
+		}
+		if beforeX > afterX {
+			w = toLeft
+		}
 	}
-	if beforeX > afterX {
-		w = toLeft
-	}
-	if beforeY < afterY {
-		h = toDown
-	}
-	if beforeY > afterY {
-		h = toUp
+
+	if !floatEqual(beforeY, afterY) {
+		if beforeY < afterY {
+			h = toDown
+		}
+		if beforeY > afterY {
+			h = toUp
+		}
 	}
 	return w, h
 }
@@ -151,11 +157,11 @@ func TestMoveDirection(t *testing.T) {
 
 		// negative speed to the gorilla.Right and to thegorilla.Left
 		{input{-10, 0, gorilla.Right}, output{toLeft, noVertical}},
-		{input{-10, 90, gorilla.Right}, output{noHorizontal, toUp}},
-		{input{-10, 45, gorilla.Right}, output{toLeft, toUp}},
+		{input{-10, 90, gorilla.Right}, output{noHorizontal, toDown}},
+		{input{-10, 45, gorilla.Right}, output{toLeft, toDown}},
 		{input{-10, 0, gorilla.Left}, output{toRight, noVertical}},
-		{input{-10, 90, gorilla.Left}, output{noHorizontal, toUp}},
-		{input{-10, 45, gorilla.Left}, output{toRight, toUp}},
+		{input{-10, 90, gorilla.Left}, output{noHorizontal, toDown}},
+		{input{-10, 45, gorilla.Left}, output{toRight, toDown}},
 
 		// negative angle to the gorilla.Right and to thegorilla.Left
 		{input{10, 0, gorilla.Right}, output{toRight, noVertical}},
@@ -167,12 +173,12 @@ func TestMoveDirection(t *testing.T) {
 
 		// both speed and angle negative
 		{input{-10, 0, gorilla.Right}, output{toLeft, noVertical}},
-		{input{-10, -90, gorilla.Right}, output{noHorizontal, toDown}},
-		{input{-10, -45, gorilla.Right}, output{toLeft, toDown}},
+		{input{-10, -90, gorilla.Right}, output{noHorizontal, toUp}},
+		{input{-10, -45, gorilla.Right}, output{toLeft, toUp}},
 
 		{input{-10, 0, gorilla.Left}, output{toRight, noVertical}},
-		{input{-10, -90, gorilla.Left}, output{noHorizontal, toDown}},
-		{input{-10, -45, gorilla.Left}, output{toRight, toDown}},
+		{input{-10, -90, gorilla.Left}, output{noHorizontal, toUp}},
+		{input{-10, -45, gorilla.Left}, output{toRight, toUp}},
 
 		// angles over 90 degrees
 		{input{10, 0, gorilla.Right}, output{toRight, noVertical}},
