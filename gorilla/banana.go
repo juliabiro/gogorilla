@@ -22,12 +22,26 @@ type Banana struct {
 	gravity     float64
 }
 
+func (b *Banana) Dimensions() (width, height float64) {
+	return b.width, b.height
+}
+
+func (b *Banana) MoveData() (speed, angle, gravity float64) {
+	return b.speed, b.angle, b.gravity
+}
+
+func (b *Banana) SetMoveData(speed, angle, gravity float64) {
+	b.speed = speed
+	b.angle = angle
+	b.gravity = gravity
+}
+
 func (b *Banana) Center() (X, Y float64) {
 	return b.X + b.width/2, b.Y + b.height/2
 }
 
-func (b *Banana) move(direction int) {
-	if direction == right {
+func (b *Banana) Move(direction int) {
+	if direction == Right {
 		b.X += b.speed * math.Cos(b.angle*math.Pi/180)
 	} else {
 		b.X -= b.speed * math.Cos(b.angle*math.Pi/180)
@@ -71,7 +85,7 @@ func (b *Banana) DrawingParameters() (*ebiten.Image, *ebiten.DrawImageOptions) {
 	return b.img.Image, op
 }
 
-func (b *Banana) reset() {
+func (b *Banana) Reset() {
 	b.X = 0
 	b.Y = 0
 	b.gravity = 0.0
@@ -80,7 +94,7 @@ func (b *Banana) reset() {
 func (b *Banana) alignWithGorilla(g Gorilla) {
 	b.X = g.X
 	b.Y = g.Y
-	if g.direction == right {
+	if g.direction == Right {
 		b.X += g.width
 	}
 }
