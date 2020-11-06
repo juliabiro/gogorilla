@@ -12,10 +12,12 @@ jobs:
     env:
     script: go build main.go
 
-  # - stage: test
-  #   env:
-  #     - DISPLAY=':99.0'
-  #   steps:
+  - stage: test
+    env:
+      - DISPLAY=':99.0'
+    steps:
+      - name: test
+        script: go test ./gorilla_test
   #      - name: Install wasmbrowsertest
   #       run: |
   #         env GO111MODULE=off go get github.com/agnivade/wasmbrowsertest
@@ -24,7 +26,5 @@ jobs:
   #       run: |
   #         Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 
-  #     - name: test
-  #       script: go test ./gorilla_test
 
 
