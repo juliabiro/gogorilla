@@ -24,11 +24,7 @@ type Gorilla struct {
 	direction int
 }
 
-func (g *Gorilla) LoadImage() {
-	file := imageDir + "gorilla1.png"
-	if g.direction == Right {
-		file = imageDir + "gorilla2.png"
-	}
+func (g *Gorilla) LoadImage(file string) {
 	var err error
 
 	img, _, err := ebitenutil.NewImageFromFile(file, ebiten.FilterDefault)
@@ -52,14 +48,26 @@ func (g *Gorilla) Center() (X, Y float64) {
 	return g.X + g.width/2, g.Y + g.height/2
 }
 
-func (g *Gorilla) reset(b []Building) {
+func (g *Gorilla) Alive() bool {
+	return g.alive
+}
+
+func (g *Gorilla) Score() int {
+	return g.score
+}
+
+func (g *Gorilla) Direction() int {
+	return g.direction
+}
+
+func (g *Gorilla) Reset(b []Building, maxX int) {
 
 	minx := 0
 	if g.direction == Left {
-		minx = ScreenWidth / 2
+		minx = maxX / 2
 	}
 
-	g.X = float64(minx + rand.Intn(0.6*ScreenWidth/2))
+	g.X = float64(minx + rand.Intn(3*maxX/10))
 
 	g.sitOnRooftop(b)
 	g.revive()
@@ -81,7 +89,7 @@ func (g *Gorilla) sitOnRooftop(b []Building) {
 
 }
 
-func (g *Gorilla) kill() {
+func (g *Gorilla) Kill() {
 	g.alive = false
 }
 
@@ -89,6 +97,13 @@ func (g *Gorilla) revive() {
 	g.alive = true
 }
 
-func (g *Gorilla) increaseScore() {
+func (g *Gorilla) IncreaseScore() {
 	g.score++
+}
+
+func (g *Gorilla) DrawingParamaters() (*ebiten.Image, *ebiten.DrawImageOptions) {
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(g.img.scaleX, g.img.scaleY)
+	op.GeoM.Translate(float64(g.X), float64(g.Y))
+	return g.img.Image, op
 }

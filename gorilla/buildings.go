@@ -33,17 +33,24 @@ type Building struct {
 // setup
 // TODO: turn into factory function
 
-func NewBuilding(startingX float64) *Building {
-	w := float64(100 + rand.Intn(ScreenWidth/12))
-	h := float64(150 + rand.Intn(ScreenHeight/2))
-	if startingX+w >= ScreenWidth {
-		w = ScreenWidth - startingX
+func NewBuilding(startingX int, screenWidth int, screenHeight int) *Building {
+	iw := 100 + rand.Intn(screenWidth/12)
+	ih := 150 + rand.Intn(screenHeight/2)
+	if startingX+iw >= screenWidth {
+		iw = screenWidth - startingX
 	}
-	img, _ := ebiten.NewImage(int(w), int(h), ebiten.FilterDefault)
+	img, _ := ebiten.NewImage(iw, ih, ebiten.FilterDefault)
 	c := color.RGBA{0, 0, 100 + uint8(rand.Intn(155)), 255}
 
-	b := Building{Point{float64(startingX), float64(ScreenHeight - h)}, img, h, w, c, newWindows(w, h)}
+	w := float64(iw)
+	h := float64(ih)
+
+	b := Building{Point{float64(startingX), float64(screenHeight - ih)}, img, h, w, c, newWindows(w, h)}
 	return &b
+}
+
+func (b *Building) Width() int {
+	return int(b.width)
 }
 
 func newWindows(w, h float64) *Windows {
