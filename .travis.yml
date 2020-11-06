@@ -7,18 +7,18 @@ before_install:
 
 
 jobs:
-  build:
+  include:
+  - stage: build
     steps:
       - name: build
         script:
           go build main.go
-  test:
-    env:
-      DISPLAY: ':99.0'
 
+  - stage: test
+    env:
+      - DISPLAY=':99.0'
     steps:
       - name: Xvfb
-        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 
