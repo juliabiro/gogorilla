@@ -10,21 +10,21 @@ jobs:
   include:
   - stage: build
     env:
-      - DISPLAY=':99.0'
-    steps:
-      - name: build
-        script:
-          go build main.go
+    script: go build main.go
 
-  - stage: test
-    env:
-      - DISPLAY=':99.0'
-    steps:
-      - name: Xvfb
-        run: |
-          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+  # - stage: test
+  #   env:
+  #     - DISPLAY=':99.0'
+  #   steps:
+  #      - name: Install wasmbrowsertest
+  #       run: |
+  #         env GO111MODULE=off go get github.com/agnivade/wasmbrowsertest
+  #         mv $(go env GOPATH)/bin/wasmbrowsertest $(go env GOPATH)/bin/go_js_wasm_exec
+  #     - name: Xvfb
+  #       run: |
+  #         Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 
-      - name: test
-        script: go test ./gorilla_test
+  #     - name: test
+  #       script: go test ./gorilla_test
 
 
