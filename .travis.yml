@@ -3,7 +3,7 @@ go:
   - "1.15.2"
 
 before_install:
-- sudo apt-get install xorg-dev libgl1-mesa-dev
+- sudo apt-get install xorg-dev libgl1-mesa-dev libglfw3 libglfw3-dev
 
 jobs:
   include:
