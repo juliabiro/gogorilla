@@ -3,17 +3,26 @@ go:
   - "1.15.2"
 
 before_install:
-- sudo apt-get install xorg-dev libgl1-mesa-dev libglfw3 libglfw3-dev
+- sudo apt-get install xorg-dev libgl1-mesa-dev libglfw3 libglfw3-dev libxxf86vm-dev
 
 
 jobs:
-  include:
-    - stage: build
-      script:
-        go build main.go
-    - stage: test
-      env:
-        DISPLAY: ':99.0'
-      script: go test ./gorilla_test
+  build:
+    steps:
+      - name: build
+        script:
+          go build main.go
+  test:
+    env:
+      DISPLAY: ':99.0'
+
+    steps:
+      - name: Xvfb
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+
+      - name: test
+        script: go test ./gorilla_test
 
 
