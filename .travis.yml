@@ -11,6 +11,6 @@ jobs:
       script:
         go build main.go
     - stage: test
-      script: go test ./gorilla
+      script: go test ./gorilla_test
 
 
