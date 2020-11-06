@@ -20,15 +20,6 @@ jobs:
       - env GO111MODULE=off go get github.com/agnivade/wasmbrowsertest
       - mv $(go env GOPATH)/bin/wasmbrowsertest $(go env GOPATH)/bin/go_js_wasm_exec
       - go test ./gorilla_test
-    # steps:
-    #   - name: Install wasmbrowsertest
-    #   run: |
-    #     env GO111MODULE=off go get github.com/agnivade/wasmbrowsertest
-    #     mv $(go env GOPATH)/bin/wasmbrowsertest $(go env GOPATH)/bin/go_js_wasm_exec
-    #   - name: test
-  #     - name: Xvfb
-  #       run: |
-  #         Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 
 
 
