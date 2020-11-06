@@ -3,7 +3,32 @@ go:
   - "1.15.2"
 
 before_install:
-- sudo apt-get install xorg-dev libgl1-mesa-dev
+- sudo apt-get install xorg-dev libgl1-mesa-dev libglfw3 libglfw3-dev libxxf86vm-dev
 
-script:
-  go build main.go
+
+jobs:
+  include:
+  - stage: build
+    env:
+    script: go build main.go
+
+  - stage: test
+    env:
+      - DISPLAY=':99.0'
+    script:
+      - Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - env GO111MODULE=off go get github.com/agnivade/wasmbrowsertest
+      - mv $(go env GOPATH)/bin/wasmbrowsertest $(go env GOPATH)/bin/go_js_wasm_exec
+      - go test ./gorilla_test
+    # steps:
+    #   - name: Install wasmbrowsertest
+    #   run: |
+    #     env GO111MODULE=off go get github.com/agnivade/wasmbrowsertest
+    #     mv $(go env GOPATH)/bin/wasmbrowsertest $(go env GOPATH)/bin/go_js_wasm_exec
+    #   - name: test
+  #     - name: Xvfb
+  #       run: |
+  #         Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+
+
+
