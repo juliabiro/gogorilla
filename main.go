@@ -2,14 +2,15 @@ package main
 
 import (
 	"github.com/hajimehoshi/ebiten"
-	"github.com/juliabiro/gogorilla/gorilla"
+	"github.com/juliabiro/gogorilla/game"
 	"log"
 )
 
 func main() {
-	game := gorilla.Game{}
+	game := game.Game{}
 	// Sepcify the window size as you like. Here, a doulbed size is specified.
-	ebiten.SetWindowSize(gorilla.ScreenWidth, gorilla.ScreenHeight)
+	sw, sh := game.Layout(0, 0)
+	ebiten.SetWindowSize(sw, sh)
 	ebiten.SetWindowTitle("Gorillas")
 	game.Setup()
 	// Call ebiten.RunGame to start your game loop.

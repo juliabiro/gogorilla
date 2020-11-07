@@ -7,10 +7,6 @@ import (
 	"math"
 )
 
-const (
-	gravity = 0.98
-)
-
 type Banana struct {
 	Point
 	img         ScaledImage
@@ -54,12 +50,8 @@ func (b *Banana) Move(direction int) {
 	b.Y += b.gravity
 }
 
-func (b *Banana) Out() bool {
-	return b.X < 0 || b.X > ScreenWidth || b.Y > ScreenHeight
-}
-
-func (b *Banana) LoadImage() {
-	img, _, err := ebitenutil.NewImageFromFile(imageDir+"banana.png", ebiten.FilterDefault)
+func (b *Banana) LoadImage(file string) {
+	img, _, err := ebitenutil.NewImageFromFile(file, ebiten.FilterDefault)
 
 	if err != nil {
 		log.Fatal(err)
@@ -91,7 +83,7 @@ func (b *Banana) Reset() {
 	b.gravity = 0.0
 }
 
-func (b *Banana) alignWithGorilla(g Gorilla) {
+func (b *Banana) AlignWithGorilla(g Gorilla) {
 	b.X = g.X
 	b.Y = g.Y
 	if g.direction == Right {
@@ -99,14 +91,14 @@ func (b *Banana) alignWithGorilla(g Gorilla) {
 	}
 }
 
-func (b *Banana) applyGravity(gravity float64) {
+func (b *Banana) ApplyGravity(gravity float64) {
 	b.gravity += gravity
 }
 
-func (b *Banana) setAngle(angle float64) {
+func (b *Banana) SetAngle(angle float64) {
 	b.angle = angle
 }
 
-func (b *Banana) setSpeed(speed float64) {
+func (b *Banana) SetSpeed(speed float64) {
 	b.speed = speed
 }
