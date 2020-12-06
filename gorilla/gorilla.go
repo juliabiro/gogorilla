@@ -2,10 +2,8 @@ package gorilla
 
 import (
 	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
 
 	_ "image/png"
-	"log"
 	"math/rand"
 )
 
@@ -24,14 +22,9 @@ type Gorilla struct {
 	direction int
 }
 
-func (g *Gorilla) LoadImage(file string) {
-	var err error
-
-	img, _, err := ebitenutil.NewImageFromFile(file, ebiten.FilterDefault)
-	if err != nil {
-		log.Fatal(err)
-	}
+func (g *Gorilla) SetImage(img *ebiten.Image) {
 	g.img = ScaledImage{img, float64(g.width) / float64(img.Bounds().Dx()), float64(g.height) / float64(img.Bounds().Dy())}
+
 }
 
 func NewGorilla(direction int) *Gorilla {

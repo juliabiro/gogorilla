@@ -2,8 +2,6 @@ package gorilla
 
 import (
 	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
-	"log"
 	"math"
 )
 
@@ -50,12 +48,7 @@ func (b *Banana) Move(direction int) {
 	b.Y += b.gravity
 }
 
-func (b *Banana) LoadImage(file string) {
-	img, _, err := ebitenutil.NewImageFromFile(file, ebiten.FilterDefault)
-
-	if err != nil {
-		log.Fatal(err)
-	}
+func (b *Banana) SetImage(img *ebiten.Image) {
 	b.img = ScaledImage{img, float64(b.width) / float64(img.Bounds().Dx()), float64(b.height) / float64(img.Bounds().Dy())}
 
 }
