@@ -2,9 +2,11 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 
 	"github.com/juliabiro/gogorilla/gorilla"
 	_ "image/png"
+	"log"
 	"math"
 	"math/rand"
 	"strconv"
@@ -93,6 +95,18 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 // Setup
 
+func LoadImage(file string) *ebiten.Image {
+
+	var err error
+
+	img, _, err := ebitenutil.NewImageFromFile(file, ebiten.FilterDefault)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return img
+}
+
 func (g *Game) Setup() {
 	rand.Seed(time.Now().UnixNano())
 	g.iohandler = NewIOHandler()
@@ -108,14 +122,14 @@ func (g *Game) Setup() {
 func (g *Game) setupGorillas() {
 	g.gorilla1 = gorilla.NewGorilla(gorilla.Right)
 	g.gorilla2 = gorilla.NewGorilla(gorilla.Left)
-	g.gorilla1.LoadImage(imageDir + "gorilla1.png")
-	g.gorilla2.LoadImage(imageDir + "gorilla2.png")
+	g.gorilla1.SetImage(LoadImage(imageDir + "gorilla1.png"))
+	g.gorilla2.SetImage(LoadImage(imageDir + "gorilla2.png"))
 	g.resetGorillas()
 }
 
 func (g *Game) setupBanana() {
 	g.banana = gorilla.NewBanana()
-	g.banana.LoadImage(imageDir + "banana.png")
+	g.banana.SetImage(LoadImage(imageDir + "banana.png"))
 	g.resetBanana()
 
 }
