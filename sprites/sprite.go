@@ -107,8 +107,8 @@ func (s *Sprite) DrawingParameters() (*ebiten.Image, *ebiten.DrawImageOptions) {
 func NewSprite(x, y float64, width, height int, img *ebiten.Image) *Sprite {
 	s := Sprite{}
 	s.SetLocation(x, y)
+	s.img = img
 	s.SetSize(width, height)
-	s.SetImage(img)
 
 	return &s
 }
