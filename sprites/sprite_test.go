@@ -1,7 +1,6 @@
 package sprites
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	"github.com/hajimehoshi/ebiten"
 
 	"testing"
@@ -12,11 +11,11 @@ func TestNewSprite(t *testing.T) {
 	img, _ := ebiten.NewImage(iw, ih, ebiten.FilterDefault)
 
 	s := NewSprite(5, 6, 10, 11, img)
-	if s.x != 5 || s.y != 6 {
+	if s.X != 5 || s.Y != 6 {
 		t.Errorf("sprite location not initialized")
 	}
 
-	if s.width != 10 || s.height != 11 {
+	if s.Width != 10 || s.Height != 11 {
 		t.Errorf("sprite dimensions not initialized")
 	}
 }
@@ -29,7 +28,7 @@ func TestDrawImage(t *testing.T) {
 
 	drawnimage, op := s.DrawingParameters()
 
-	if drawnimage != s.img {
+	if drawnimage != s.Img {
 		t.Errorf("Not the right image")
 	}
 	expected_om := [2][3]float64{{2, 0, 0}, {0, 2, 0}}

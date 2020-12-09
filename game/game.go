@@ -100,6 +100,7 @@ func LoadImage(file string) *ebiten.Image {
 	var err error
 
 	img, _, err := ebitenutil.NewImageFromFile(file, ebiten.FilterDefault)
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -128,8 +129,10 @@ func (g *Game) setupGorillas() {
 }
 
 func (g *Game) setupBanana() {
-	g.banana = gorilla.NewBanana()
-	g.banana.SetImage(LoadImage(imageDir + "banana.png"))
+	img := LoadImage(imageDir + "banana.png")
+	g.banana = gorilla.NewBanana(0, 0, 20, 20)
+	g.banana.SetImage(img)
+	g.banana.SetGravity(gravity)
 	g.resetBanana()
 
 }
@@ -170,15 +173,19 @@ func (g *Game) updateSprites(parsedValue float64, enterPressed bool) {
 		g.resetBanana()
 	case inputAngle:
 		if enterPressed {
-			g.banana.SetAngle(parsedValue)
+			// TODO here the Direction needs to be offset based on the gorillas direction
+			if g.turn == g.gorilla1 {
+				g.banana.SetDirection(parsedValue)
+			} else {
+				g.banana.SetDirection(parsedValue + 180)
+			}
 		}
 	case inputSpeed:
 		if enterPressed {
 			g.banana.SetSpeed(parsedValue)
 		}
 	case bananaFlying:
-		g.banana.ApplyGravity(gravity)
-		g.banana.Move(g.turn.Direction())
+		g.banana.Move()
 		//  collision detection
 		if detectCollision(g.banana, g.gorilla1) {
 			g.gorilla1.Kill()
@@ -260,8 +267,9 @@ func (g *Game) resetGorillas() {
 }
 
 func (g *Game) resetBanana() {
-	g.banana.Reset()
-	g.banana.AlignWithGorilla(*g.turn)
+	gg := g.turn
+	g.banana.Reset(gg.X, gg.Y)
+	g.banana.AlignWithGorilla(*gg)
 }
 
 func Out(b Center) bool {

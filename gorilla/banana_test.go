@@ -9,7 +9,7 @@ import (
 
 func TestNewBanana(t *testing.T) {
 	b := gorilla.NewBanana()
-	w, h := b.Dimensions()
+	w, h := b.Width, b.Height
 	if w == 0 || h == 0 {
 		t.Errorf("banana dimensions not initialized")
 	}
@@ -19,17 +19,19 @@ func TestResetBanana(t *testing.T) {
 	b := gorilla.NewBanana()
 	b.X = 3
 	b.Y = 4
-	_, _, g := b.MoveData()
 
-	b.SetMoveData(10, 45, 7)
-	b.Reset()
-	if b.X != 0 {
+	b.SetSpeed(10)
+	b.SetDirection(45)
+	b.SetGravity(8)
+
+	b.Reset(6, 7)
+	if b.X != 6 {
 		t.Fatalf("banana X coordinate not reset properly")
 	}
-	if b.Y != 0 {
+	if b.Y != 7 {
 		t.Fatalf("banana Y coordinate not reset properly")
 	}
-	if g != 0.0 {
+	if b.Gravity != 0.0 {
 		t.Fatalf("banana gravity coordinate not reset properly")
 	}
 }
@@ -58,10 +60,11 @@ func TestMoveSpeedAngle(t *testing.T) {
 	b := gorilla.NewBanana()
 	for _, tc := range bananaMoveSpeedAngleTestCases {
 		b.X, b.Y = 0.0, 0.0
-		b.SetMoveData(tc.in.speed, tc.in.angle, 0)
+		b.SetSpeed(tc.in.speed)
+		b.SetDirection(tc.in.angle)
 		beforeX := b.X
 		beforeY := b.Y
-		b.Move(gorilla.Right)
+		b.Move()
 		changeX := b.X - beforeX
 		changeY := b.Y - beforeY
 		if floatEqual(changeX, tc.out.changeX) != true || floatEqual(changeY, tc.out.changeY) != true {
@@ -165,12 +168,13 @@ func TestMoveDirection(t *testing.T) {
 
 	b := gorilla.NewBanana()
 	for _, tc := range bananaMoveDirectionTestCase {
-		b.Reset()
-		b.SetMoveData(tc.in.speed, tc.in.angle, 0)
+		b.Reset(0, 0)
+		b.SetSpeed(tc.in.speed)
+		b.SetDirection(tc.in.angle)
 		beforeX := b.X
 		beforeY := b.Y
 
-		b.Move(tc.in.direction)
+		b.Move()
 
 		w, h := getChangeDirection(beforeX, beforeY, b.X, b.Y)
 

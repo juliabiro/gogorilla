@@ -6,26 +6,26 @@ import (
 )
 
 type Point struct {
-	x float64
-	y float64
+	X float64
+	Y float64
 }
 
 type ScaledImage struct {
-	img            *ebiten.Image
-	scaleX, scaleY float64
+	Img            *ebiten.Image
+	ScaleX, ScaleY float64
 }
 
 type Dimensions struct {
-	width  int
-	height int
+	Width  int
+	Height int
 }
 
 type Movement struct {
-	speed         float64
-	direction     float64 // expressed in degrees
-	gravity       float64
+	Speed         float64
+	Direction     float64 // expressed in degrees
+	Gravity       float64
 	downwardSpeed float64
-	orientation   float64 // expressed in degrees
+	Orientation   float64 // expressed in degrees
 	rotationSpeed float64
 }
 
@@ -37,30 +37,30 @@ type Sprite struct {
 }
 
 func (s *Sprite) Center() (float64, float64) {
-	return s.x + float64(s.width)/2, s.y + float64(s.height)/2
+	return s.X + float64(s.Width)/2, s.Y + float64(s.Height)/2
 }
 
 func (s *Sprite) SetLocation(x_loc, y_loc float64) {
-	s.x = x_loc
-	s.y = y_loc
+	s.X = x_loc
+	s.Y = y_loc
 }
 
 func (s *Sprite) SetSize(w, h int) {
-	s.width = w
-	s.height = h
+	s.Width = w
+	s.Height = h
 	s.updateImageScale()
 }
 
 func (s *Sprite) SetSpeed(speed float64) {
-	s.speed = speed
+	s.Speed = speed
 }
 
 func (s *Sprite) SetDirection(direction float64) {
-	s.direction = direction
+	s.Direction = direction
 }
 
 func (s *Sprite) SetGravity(gravity float64) {
-	s.gravity = gravity
+	s.Gravity = gravity
 }
 
 func (s *Sprite) SetRotationSpeed(rspeed float64) {
@@ -68,61 +68,64 @@ func (s *Sprite) SetRotationSpeed(rspeed float64) {
 }
 
 func (s *Sprite) applyGravity() {
-	s.downwardSpeed += s.gravity
-	s.y += s.downwardSpeed
+	s.downwardSpeed += s.Gravity
+	s.Y += s.downwardSpeed
 }
 func (s *Sprite) Move() {
-	s.x += s.speed * math.Sin(s.direction)
-	s.y += s.speed * math.Cos(s.direction)
+	s.X += s.Speed * math.Cos(s.Direction*math.Pi/180)
+	s.Y -= s.Speed * math.Sin(s.Direction*math.Pi/180)
 	s.applyGravity()
-	s.orientation += s.rotationSpeed
+	s.Orientation += s.rotationSpeed
 }
 
 func (s *Sprite) Stop() {
-	s.speed = 0
-	s.direction = 0
-	s.gravity = 0
+	s.Speed = 0
+	s.Direction = 0
+	s.Gravity = 0
 	s.rotationSpeed = 0
 }
 
 func (s *Sprite) updateImageScale() {
-	s.scaleX = float64(s.width) / float64(s.img.Bounds().Dx())
-	s.scaleY = float64(s.height) / float64(s.img.Bounds().Dy())
+	if s.Img == nil {
+		return
+	}
+	s.ScaleX = float64(s.Width) / float64(s.Img.Bounds().Dx())
+	s.ScaleY = float64(s.Height) / float64(s.Img.Bounds().Dy())
 }
 
 func (s *Sprite) SetImage(img *ebiten.Image) {
-	s.img = img
+	s.Img = img
 	s.updateImageScale()
 }
 
 func (s *Sprite) DrawingParameters() (*ebiten.Image, *ebiten.DrawImageOptions) {
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Rotate(float64(s.orientation))
-	op.GeoM.Scale(s.scaleX, s.scaleY)
-	op.GeoM.Translate(float64(s.x), float64(s.y))
+	op.GeoM.Rotate(float64(s.Orientation))
+	op.GeoM.Scale(s.ScaleX, s.ScaleY)
+	op.GeoM.Translate(float64(s.X), float64(s.Y))
 
-	return s.img, op
+	return s.Img, op
 }
 
-func NewSprite(x, y float64, width, height int, img *ebiten.Image) *Sprite {
+func NewSprite(x, y float64, Width, Height int) *Sprite {
 	s := Sprite{}
+	s.Img = nil
 	s.SetLocation(x, y)
-	s.img = img
-	s.SetSize(width, height)
+	s.SetSize(Width, Height)
 
 	return &s
 }
 
 func (s *Sprite) Reset(x, y float64) {
 	s.Stop()
-	s.x = x
-	s.y = y
-	s.orientation = 0
-	s.gravity = 0
+	s.X = x
+	s.Y = y
+	s.Orientation = 0
+	s.Gravity = 0
 }
 
 func (s *Sprite) IsInside(x, y float64) bool {
-	return x >= s.x && x <= s.x+float64(s.width) && y >= s.y && y < s.y+float64(s.height)
+	return x >= s.X && x <= s.X+float64(s.Width) && y >= s.Y && y < s.Y+float64(s.Height)
 }
 
 func IsTouching(s1 *Sprite, s2 *Sprite) bool {
