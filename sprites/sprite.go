@@ -128,13 +128,13 @@ func (s *Sprite) IsInside(x, y float64) bool {
 	return x >= s.X && x <= s.X+float64(s.Width) && y >= s.Y && y < s.Y+float64(s.Height)
 }
 
-func IsTouching(s1 *Sprite, s2 *Sprite) bool {
-	return s1.IsInside(s2.Center()) || s2.IsInside(s1.Center())
-}
-
 type CollisionDetection interface {
 	Center() (float64, float64)
 	IsInside(x, y float64) bool
+}
+
+func IsTouching(s1 CollisionDetection, s2 CollisionDetection) bool {
+	return s1.IsInside(s2.Center()) || s2.IsInside(s1.Center())
 }
 
 type Drawable interface {
