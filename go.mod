@@ -6,6 +6,7 @@ require (
 	github.com/go-gl/glfw v0.0.0-20200707082815-5321531c36a2 // indirect
 	github.com/gobuffalo/packr/v2 v2.8.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+	github.com/golang/mock v1.4.4
 	github.com/hajimehoshi/ebiten v1.12.2
 	github.com/hajimehoshi/file2byteslice v0.0.0-20200812174855-0e5e8a80490e // indirect
 	golang.org/x/exp v0.0.0-20201008143054-e3b2a7f2fdc7 // indirect

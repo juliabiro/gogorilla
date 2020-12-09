@@ -1,7 +1,9 @@
 package sprites
 
 import (
+	gomock "github.com/golang/mock/gomock"
 	"github.com/hajimehoshi/ebiten"
+
 	"testing"
 )
 
