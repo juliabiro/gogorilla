@@ -2,6 +2,7 @@ package gorilla
 
 import (
 	"github.com/hajimehoshi/ebiten"
+	"github.com/juliabiro/gogorilla/sprites"
 
 	_ "image/png"
 	"math/rand"
@@ -13,32 +14,16 @@ const (
 )
 
 type Gorilla struct {
-	Point
-	alive     bool
-	img       ScaledImage
-	height    float64
-	width     float64
+	sprites.Sprite
 	score     int
 	direction int
+	alive     bool
 }
 
-func (g *Gorilla) SetImage(img *ebiten.Image) {
-	g.img = ScaledImage{img, float64(g.width) / float64(img.Bounds().Dx()), float64(g.height) / float64(img.Bounds().Dy())}
-
-}
-
-func NewGorilla(direction int) *Gorilla {
-	g := Gorilla{}
-	g.alive = true
-	g.width = 50
-	g.height = 50
-	g.direction = direction
+func NewGorilla(x, y float64, w, h int, direction int) *Gorilla {
+	g := Gorilla{*sprites.NewSprite(x, y, w, h), 0, direction, true}
 
 	return &g
-}
-
-func (g *Gorilla) Center() (X, Y float64) {
-	return g.X + g.width/2, g.Y + g.height/2
 }
 
 func (g *Gorilla) Alive() bool {
@@ -75,9 +60,9 @@ func (g *Gorilla) sitOnRooftop(b []Building) {
 	bb := b[i]
 
 	// make sure I sit on it
-	g.Y = bb.Y - float64(g.height)
-	if g.X < bb.X || g.X+g.width > bb.X+bb.width {
-		g.X = bb.X + float64(rand.Intn(int(bb.width-g.width)))
+	g.Y = bb.Y - float64(g.Height)
+	if g.X < bb.X || g.X+g.Width > bb.X+bb.width {
+		g.X = bb.X + float64(rand.Intn(int(bb.width-g.Width)))
 	}
 
 }
@@ -96,7 +81,7 @@ func (g *Gorilla) IncreaseScore() {
 
 func (g *Gorilla) DrawingParamaters() (*ebiten.Image, *ebiten.DrawImageOptions) {
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Scale(g.img.scaleX, g.img.scaleY)
+	op.GeoM.Scale(g.scaleX, g.scaleY)
 	op.GeoM.Translate(float64(g.X), float64(g.Y))
-	return g.img.Image, op
+	return g.Img.Image, op
 }

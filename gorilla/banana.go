@@ -54,7 +54,7 @@ type Banana struct {
 // }
 
 func NewBanana(x, y float64, w, h int) *Banana {
-	b := Banana{*sprites.NewSprite(0, 0, w, h)}
+	b := Banana{*sprites.NewSprite(x, y, w, h)}
 	return &b
 }
 
@@ -78,7 +78,7 @@ func (b *Banana) AlignWithGorilla(g Gorilla) {
 	b.X = g.X
 	b.Y = g.Y
 	if g.direction == Right {
-		b.Y += g.width
+		b.Y += g.Width
 	}
 }
 
