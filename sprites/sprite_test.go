@@ -4,7 +4,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/juliabiro/gogorilla/mocks"
-
+	"math"
 	"testing"
 )
 
@@ -58,4 +58,103 @@ func TestIsTouching(t *testing.T) {
 	m2.EXPECT().IsInside(50.0, 50.0).Return(false)
 
 	IsTouching(m1, m2)
+}
+
+const (
+	toUp         = "up"
+	toDown       = "down"
+	toRight      = "right"
+	toLeft       = "left"
+	noHorizontal = "no horizontal move"
+	noVertical   = "no vertical move"
+)
+
+func floatEqual(a, b float64) bool {
+	return math.Abs(b-a) < 0.0001 // absolutaley arbitrary tolerance for imprecision
+}
+
+func getChangeDirection(beforeX, beforeY, afterX, afterY float64) (string, string) {
+	var w, h = noHorizontal, noVertical
+
+	if !floatEqual(beforeX, afterX) {
+		if beforeX < afterX {
+			w = toRight
+		}
+		if beforeX > afterX {
+			w = toLeft
+		}
+	}
+
+	if !floatEqual(beforeY, afterY) {
+		if beforeY < afterY {
+			h = toDown
+		}
+		if beforeY > afterY {
+			h = toUp
+		}
+	}
+	return w, h
+}
+
+func TestMove(t *testing.T) {
+	type input struct {
+		speed, angle float64
+	}
+
+	type output struct {
+		horizontalMoveDirection, verticalMoveDirection string
+	}
+	var bananaMoveDirectionTestCase = []struct {
+		in  input
+		out output
+	}{
+		// base case: 0, 45 or 90 to the right
+		{input{10, 0}, output{toRight, noVertical}},
+		{input{10, 90}, output{noHorizontal, toUp}},
+		{input{10, 45}, output{toRight, toUp}},
+
+		// negative speed to the gorilla.Right and to thegorilla.Left
+		{input{-10, 0}, output{toLeft, noVertical}},
+		{input{-10, 90}, output{noHorizontal, toDown}},
+		{input{-10, 45}, output{toLeft, toDown}},
+
+		// negative angle to the gorilla.Right and to thegorilla.Left
+		{input{10, 0}, output{toRight, noVertical}},
+		{input{10, -90}, output{noHorizontal, toDown}},
+		{input{10, -45}, output{toRight, toDown}},
+
+		// both speed and angle negative
+		{input{-10, 0}, output{toLeft, noVertical}},
+		{input{-10, -90}, output{noHorizontal, toUp}},
+		{input{-10, -45}, output{toLeft, toUp}},
+
+		// angles over 90 degrees
+		{input{10, 0}, output{toRight, noVertical}},
+		{input{10, 90}, output{noHorizontal, toUp}},
+		{input{10, 45}, output{toRight, toUp}},
+		{input{10, 135}, output{toLeft, toUp}},
+		{input{10, 180}, output{toLeft, noVertical}},
+		{input{10, 225}, output{toLeft, toDown}},
+		{input{10, 270}, output{noHorizontal, toDown}},
+		{input{10, 315}, output{toRight, toDown}},
+		{input{10, 360}, output{toRight, noVertical}},
+		{input{10, 370}, output{toRight, toUp}},
+	}
+
+	b := NewSprite(0, 0, 20, 20)
+	for _, tc := range bananaMoveDirectionTestCase {
+		b.Reset(0, 0)
+		b.SetSpeed(tc.in.speed)
+		b.SetDirection(tc.in.angle)
+		beforeX := b.X
+		beforeY := b.Y
+
+		b.Move()
+
+		w, h := getChangeDirection(beforeX, beforeY, b.X, b.Y)
+
+		if w != tc.out.horizontalMoveDirection || h != tc.out.verticalMoveDirection {
+			t.Fatalf("Banana thrown with speed %f and angle %f should move %s and %s, but instead it went %s and %s", tc.in.speed, tc.in.angle, tc.out.horizontalMoveDirection, tc.out.verticalMoveDirection, w, h)
+		}
+	}
 }

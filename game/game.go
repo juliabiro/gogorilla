@@ -225,7 +225,7 @@ func (g *Game) updateGamestate(enterPressed bool) {
 			g.gameState = bananaFlying
 		}
 	case bananaFlying:
-		if Out(g.banana) {
+		if IsOut(g.banana) {
 			g.gameState = bananaOut
 		}
 
@@ -272,7 +272,7 @@ func (g *Game) resetBanana() {
 	g.banana.AlignWithGorilla(*gg)
 }
 
-func Out(b Center) bool {
+func IsOut(b Center) bool {
 	x, y := b.Center()
 	return x < 0 || x > screenWidth || y > screenHeight
 }
