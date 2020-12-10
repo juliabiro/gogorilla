@@ -34,7 +34,7 @@ const (
 	bananaFlying
 	bananaOut
 	gorillaDead
-	gravity = 0.98
+	gravity = 0.5
 )
 
 // Game implements ebiten.Game interface.
@@ -177,7 +177,8 @@ func (g *Game) updateSprites(parsedValue float64, enterPressed bool) {
 			if g.turn == g.gorilla1 {
 				g.banana.SetDirection(parsedValue)
 			} else {
-				g.banana.SetDirection(parsedValue + 180)
+
+				g.banana.SetDirection(-1*parsedValue + 180)
 			}
 		}
 	case inputSpeed:

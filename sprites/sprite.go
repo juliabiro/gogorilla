@@ -53,6 +53,7 @@ func (s *Sprite) SetSize(w, h int) {
 
 func (s *Sprite) SetSpeed(speed float64) {
 	s.Speed = speed
+	s.Movement.rotationSpeed = s.Speed / 100
 }
 
 func (s *Sprite) SetDirection(direction float64) {
@@ -81,7 +82,6 @@ func (s *Sprite) Move() {
 func (s *Sprite) Stop() {
 	s.Speed = 0
 	s.Direction = 0
-	s.Gravity = 0
 	s.rotationSpeed = 0
 }
 
@@ -120,8 +120,8 @@ func (s *Sprite) Reset(x, y float64) {
 	s.Stop()
 	s.X = x
 	s.Y = y
+	s.Movement.downwardSpeed = 0
 	s.Orientation = 0
-	s.Gravity = 0
 }
 
 func (s *Sprite) IsInside(x, y float64) bool {

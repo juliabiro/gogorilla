@@ -78,7 +78,7 @@ func (b *Banana) AlignWithGorilla(g Gorilla) {
 	b.X = g.X
 	b.Y = g.Y
 	if g.direction == Right {
-		b.Y += g.width
+		b.X += g.width
 	}
 }
 
